@@ -1,1 +1,8 @@
-<Solution />
+<Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="MuseumSystem.Domain/MuseumSystem.Domain.csproj" />
+  <Project Path="MuseumSystem.Tests/MuseumSystem.Tests.csproj" />
+</Solution>

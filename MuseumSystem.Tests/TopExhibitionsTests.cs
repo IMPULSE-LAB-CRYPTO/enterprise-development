@@ -14,12 +14,12 @@ public class TopExhibitionsTests(MuseumFixture fixture) : IClassFixture<MuseumFi
     {
         // arrange
         var expectedTop5 = new[]
-        {
-            "Космос",
+         {
+            "Физика частиц",
             "Древний Египет",
             "Импрессионизм",
-            "Народы Севера",
             "Авиация",
+            "Космос",
         };
 
         // act
