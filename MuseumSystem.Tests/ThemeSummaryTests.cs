@@ -16,8 +16,8 @@ public class ThemeSummaryTests(MuseumFixture fixture) : IClassFixture<MuseumFixt
     public void GetThemeSummaryForPeriod_ReturnsAggregatedDataPerTheme()
     {
         // arrange
-        var from = new DateOnly(2026, 1, 1);
-        var to = new DateOnly(2026, 3, 31);
+        var from = new DateTime(2026, 1, 1);
+        var to = new DateTime(2026, 3, 31, 23, 59, 59);
 
         var expected = new[]
         {
@@ -30,7 +30,7 @@ public class ThemeSummaryTests(MuseumFixture fixture) : IClassFixture<MuseumFixt
 
         // act
         var actual = fixture.Tickets
-            .Where(t => t.Excursion.Date >= from && t.Excursion.Date <= to)
+            .Where(t => t.Excursion.StartsAt >= from && t.Excursion.StartsAt <= to)
             .SelectMany(t => t.Excursion.Exhibitions
                 .Select(e => e.Theme)
                 .Distinct()
@@ -40,9 +40,9 @@ public class ThemeSummaryTests(MuseumFixture fixture) : IClassFixture<MuseumFixt
                 Theme: g.Key,
                 TotalVisitors: g.Select(x => x.Ticket.Visitor.Id).Distinct().Count(),
                 TotalCost: g.Sum(x => x.Ticket.Price),
-                AverageVisitorsPerDay: g.GroupBy(x => x.Ticket.Excursion.Date).Average(d => d.Count()),
-                MinVisitorsPerDay: g.GroupBy(x => x.Ticket.Excursion.Date).Min(d => d.Count()),
-                MaxVisitorsPerDay: g.GroupBy(x => x.Ticket.Excursion.Date).Max(d => d.Count())))
+                AverageVisitorsPerDay: g.GroupBy(x => DateOnly.FromDateTime(x.Ticket.Excursion.StartsAt)).Average(d => d.Count()),
+                MinVisitorsPerDay: g.GroupBy(x => DateOnly.FromDateTime(x.Ticket.Excursion.StartsAt)).Min(d => d.Count()),
+                MaxVisitorsPerDay: g.GroupBy(x => DateOnly.FromDateTime(x.Ticket.Excursion.StartsAt)).Max(d => d.Count())))
             .OrderBy(s => s.Theme)
             .ToList();
 

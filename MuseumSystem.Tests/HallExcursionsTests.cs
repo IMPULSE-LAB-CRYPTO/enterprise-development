@@ -14,13 +14,15 @@ public class HallExcursionsTests(MuseumFixture fixture) : IClassFixture<MuseumFi
     {
         // arrange
         const int hallNumber = 1;
-        var from = new DateOnly(2026, 1, 1);
-        var to = new DateOnly(2026, 3, 31);
+        var from = new DateTime(2026, 1, 1);
+        var to = new DateTime(2026, 3, 31, 23, 59, 59);
         int[] expectedIds = [1, 6, 11];
 
         // act
         var actualIds = fixture.Excursions
-            .Where(e => e.HallNumber == hallNumber && e.Date >= from && e.Date <= to)
+            .Where(e => e.Exhibitions.Any(ex => ex.HallNumber == hallNumber)
+                        && e.StartsAt >= from
+                        && e.StartsAt <= to)
             .Select(e => e.Id)
             .OrderBy(id => id)
             .ToList();

@@ -11,24 +11,14 @@ public class Excursion
     public int Id { get; set; }
 
     /// <summary>
-    /// Дата проведения экскурсии
+    /// Дата и время начала экскурсии
     /// </summary>
-    public required DateOnly Date { get; set; }
-
-    /// <summary>
-    /// Время начала экскурсии
-    /// </summary>
-    public required TimeOnly StartTime { get; set; }
+    public required DateTime StartsAt { get; set; }
 
     /// <summary>
     /// Продолжительность экскурсии в минутах
     /// </summary>
     public required int DurationMinutes { get; set; }
-
-    /// <summary>
-    /// Номер зала, в котором проводится экскурсия
-    /// </summary>
-    public required int HallNumber { get; set; }
 
     /// <summary>
     /// Список посещаемых выставок
