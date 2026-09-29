@@ -234,84 +234,124 @@ public static class MuseumDataSeeder
                 Id = 1,
                 StartsAt = new DateTime(2026, 1, 15, 10, 0, 0),
                 DurationMinutes = 60,
-                Exhibitions = [byId[1], byId[6]],
+                Exhibitions = 
+                [
+                    byId[1],
+                    byId[6]
+                ]
             },
             new Excursion()
             {
                 Id = 2,
                 StartsAt = new DateTime(2026, 1, 20, 12, 0, 0),
                 DurationMinutes = 90,
-                Exhibitions = [byId[2], byId[7]],
+                Exhibitions = 
+                [
+                    byId[2],
+                    byId[7]
+                ]
             },
             new Excursion()
             {
                 Id = 3,
                 StartsAt = new DateTime(2026, 2, 5, 14, 0, 0),
                 DurationMinutes = 60,
-                Exhibitions = [byId[3], byId[8]],
+                Exhibitions = 
+                [
+                    byId[3],
+                    byId[8]
+                ]
             },
             new Excursion()
             {
                 Id = 4,
                 StartsAt = new DateTime(2026, 2, 10, 11, 0, 0),
                 DurationMinutes = 45,
-                Exhibitions = [byId[4]],
+                Exhibitions = 
+                [
+                    byId[4]
+                ]
             },
             new Excursion()
             {
                 Id = 5,
                 StartsAt = new DateTime(2026, 2, 15, 16, 0, 0),
                 DurationMinutes = 75,
-                Exhibitions = [byId[5], byId[10]],
+                Exhibitions = 
+                [
+                    byId[5],
+                    byId[10]
+                ]
             },
             new Excursion()
             {
                 Id = 6,
                 StartsAt = new DateTime(2026, 2, 20, 10, 0, 0),
                 DurationMinutes = 60,
-                Exhibitions = [byId[12]],
+                Exhibitions = 
+                [
+                    byId[12]
+                ]
             },
             new Excursion()
             {
                 Id = 7,
                 StartsAt = new DateTime(2026, 3, 1, 13, 0, 0),
                 DurationMinutes = 90,
-                Exhibitions = [byId[11]],
+                Exhibitions = 
+                [
+                    byId[11]
+                ]
             },
             new Excursion()
             {
                 Id = 8,
                 StartsAt = new DateTime(2026, 3, 5, 15, 0, 0),
                 DurationMinutes = 60,
-                Exhibitions = [byId[8]],
+                Exhibitions = 
+                [
+                    byId[8]
+                ]
             },
             new Excursion()
             {
                 Id = 9,
                 StartsAt = new DateTime(2026, 3, 10, 11, 30, 0),
                 DurationMinutes = 45,
-                Exhibitions = [byId[9]],
+                Exhibitions = 
+                [
+                    byId[9]
+                ]
             },
             new Excursion()
             {
                 Id = 10,
                 StartsAt = new DateTime(2026, 3, 15, 17, 0, 0),
                 DurationMinutes = 75,
-                Exhibitions = [byId[10]],
+                Exhibitions = 
+                [
+                    byId[10]
+                ]
             },
             new Excursion()
             {
                 Id = 11,
                 StartsAt = new DateTime(2026, 3, 20, 12, 0, 0),
                 DurationMinutes = 60,
-                Exhibitions = [byId[1]],
+                Exhibitions = 
+                [
+                    byId[1]
+                ]
             },
             new Excursion()
             {
                 Id = 12,
                 StartsAt = new DateTime(2026, 3, 25, 14, 0, 0),
                 DurationMinutes = 90,
-                Exhibitions = [byId[7]],
+                Exhibitions = 
+                [
+                    byId[7]
+                ]
             },
         ];
     }
