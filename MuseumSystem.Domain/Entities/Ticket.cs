@@ -3,32 +3,32 @@
 namespace MuseumSystem.Domain.Entities;
 
 /// <summary>
-/// билет на экскурсию (в качестве контракта)
+/// Билет на экскурсию (в качестве контракта)
 /// </summary>
 public class Ticket
 {
     /// <summary>
-    /// идентификатор
+    /// Идентификатор
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// экскурсия, на которую куплен билет
+    /// Экскурсия, на которую куплен билет
     /// </summary>
     public required Excursion Excursion { get; set; }
 
     /// <summary>
-    /// посетитель, купивший билет
+    /// Посетитель, купивший билет
     /// </summary>
     public required Visitor Visitor { get; set; }
 
     /// <summary>
-    /// тип билета
+    /// Тип билета
     /// </summary>
     public required TicketType Type { get; set; }
 
     /// <summary>
-    /// цена билета
+    /// Цена билета
     /// </summary>
     public required decimal Price { get; set; }
 }

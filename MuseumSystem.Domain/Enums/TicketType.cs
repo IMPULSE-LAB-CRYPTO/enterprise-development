@@ -1,17 +1,17 @@
 ﻿namespace MuseumSystem.Domain.Enums;
 
 /// <summary>
-/// тип билета
+/// Тип билета
 /// </summary>
 public enum TicketType
 {
     /// <summary>
-    /// взрослый
+    /// Взрослый
     /// </summary>
     Adult = 0,
 
     /// <summary>
-    /// льготный
+    /// Льготный
     /// </summary>
     Discounted = 1,
 }

@@ -3,7 +3,7 @@
 namespace MuseumSystem.Tests;
 
 /// <summary>
-/// тесты сводной информации о посещаемости по тематикам за период
+/// Тесты сводной информации о посещаемости по тематикам за период
 /// </summary>
 /// <param name="fixture">Фикстура с тестовыми данными</param>
 public class ThemeSummaryTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
@@ -51,7 +51,7 @@ public class ThemeSummaryTests(MuseumFixture fixture) : IClassFixture<MuseumFixt
     }
 
     /// <summary>
-    /// сводная информация по одной тематике
+    /// Сводная информация по одной тематике
     /// </summary>
     private sealed record ThemeSummary(
         ExhibitionTheme Theme,

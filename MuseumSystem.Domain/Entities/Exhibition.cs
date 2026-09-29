@@ -3,37 +3,37 @@
 namespace MuseumSystem.Domain.Entities;
 
 /// <summary>
-/// выставка музея
+/// Выставка музея
 /// </summary>
 public class Exhibition
 {
     /// <summary>
-    /// идентификатор
+    /// Идентификатор
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// название выставки
+    /// Название выставки
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    /// тематика выставки
+    /// Тематика выставки
     /// </summary>
     public required ExhibitionTheme Theme { get; set; }
 
     /// <summary>
-    /// номер зала, в котором проходит выставка
+    /// Номер зала, в котором проходит выставка
     /// </summary>
     public required int HallNumber { get; set; }
 
     /// <summary>
-    /// дата начала выставки
+    /// Дата начала выставки
     /// </summary>
     public required DateOnly StartDate { get; set; }
 
     /// <summary>
-    /// дата окончания выставки
+    /// Дата окончания выставки
     /// </summary>
     public required DateOnly EndDate { get; set; }
 }

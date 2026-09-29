@@ -4,32 +4,32 @@ using MuseumSystem.Domain.Entities;
 namespace MuseumSystem.Tests;
 
 /// <summary>
-/// фикстура с тестовыми данными музея (один раз на класс тестов)
+/// Фикстура с тестовыми данными музея (один раз на класс тестов)
 /// </summary>
 public class MuseumFixture
 {
     /// <summary>
-    /// список выставок
+    /// Список выставок
     /// </summary>
     public List<Exhibition> Exhibitions { get; }
 
     /// <summary>
-    /// список посетителей
+    /// Список посетителей
     /// </summary>
     public List<Visitor> Visitors { get; }
 
     /// <summary>
-    /// список экскурсий
+    /// Список экскурсий
     /// </summary>
     public List<Excursion> Excursions { get; }
 
     /// <summary>
-    /// список билетов
+    /// Список билетов
     /// </summary>
     public List<Ticket> Tickets { get; }
 
     /// <summary>
-    /// инициализирует фикстуру тестовыми данными
+    /// Инициализирует фикстуру тестовыми данными
     /// </summary>
     public MuseumFixture()
     {

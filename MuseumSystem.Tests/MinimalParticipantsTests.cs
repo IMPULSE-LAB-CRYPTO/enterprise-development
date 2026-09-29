@@ -1,7 +1,7 @@
 ﻿namespace MuseumSystem.Tests;
 
 /// <summary>
-/// тесты для поиска экскурсий с минимальным количеством участников
+/// Тесты для поиска экскурсий с минимальным количеством участников
 /// </summary>
 /// <param name="fixture">Фикстура с тестовыми данными</param>
 public class MinimalParticipantsTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>

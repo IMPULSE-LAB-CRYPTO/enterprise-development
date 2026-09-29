@@ -4,12 +4,12 @@ using MuseumSystem.Domain.Enums;
 namespace MuseumSystem.Domain.Data;
 
 /// <summary>
-/// генератор тестовых данных музея
+/// Генератор тестовых данных музея
 /// </summary>
 public static class MuseumDataSeeder
 {
     /// <summary>
-    /// возвращает список выставок
+    /// Возвращает список выставок
     /// </summary>
     public static List<Exhibition> GetExhibitions()
     {
@@ -31,7 +31,7 @@ public static class MuseumDataSeeder
     }
 
     /// <summary>
-    /// возвращает список посетителей
+    /// Возвращает список посетителей
     /// </summary>
     public static List<Visitor> GetVisitors()
     {
@@ -53,7 +53,7 @@ public static class MuseumDataSeeder
     }
 
     /// <summary>
-    /// возвращает список экскурсий
+    /// Возвращает список экскурсий
     /// </summary>
     public static List<Excursion> GetExcursions(List<Exhibition> exhibitions)
     {
@@ -77,7 +77,7 @@ public static class MuseumDataSeeder
     }
 
     /// <summary>
-    /// возвращает список билетов
+    /// Возвращает список билетов
     /// </summary>
     public static List<Ticket> GetTickets(List<Excursion> excursions, List<Visitor> visitors)
     {

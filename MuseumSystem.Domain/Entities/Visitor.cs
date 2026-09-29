@@ -1,12 +1,12 @@
 ﻿namespace MuseumSystem.Domain.Entities;
 
 /// <summary>
-/// посетитель музея
+/// Посетитель музея
 /// </summary>
 public class Visitor
 {
     /// <summary>
-    /// идентификатор
+    /// Идентификатор
     /// </summary>
     public int Id { get; set; }
 
@@ -16,12 +16,12 @@ public class Visitor
     public required string FullName { get; set; }
 
     /// <summary>
-    /// номер телефона
+    /// Номер телефона
     /// </summary>
     public required string Phone { get; set; }
 
     /// <summary>
-    /// дата рождения
+    /// Дата рождения
     /// </summary>
     public required DateOnly BirthDate { get; set; }
 }

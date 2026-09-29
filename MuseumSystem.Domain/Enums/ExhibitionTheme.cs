@@ -1,32 +1,32 @@
 ﻿namespace MuseumSystem.Domain.Enums;
 
 /// <summary>
-/// тематика выставки
+/// Тематика выставки
 /// </summary>
 public enum ExhibitionTheme
 {
     /// <summary>
-    /// историческая
+    /// Историческая
     /// </summary>
     Historical = 0,
 
     /// <summary>
-    /// художественная
+    /// Художественная
     /// </summary>
     Art = 1,
 
     /// <summary>
-    /// научная
+    /// Научная
     /// </summary>
     Science = 2,
 
     /// <summary>
-    /// этнографическая
+    /// Этнографическая
     /// </summary>
     Ethnographic = 3,
 
     /// <summary>
-    /// техническая
+    /// Техническая
     /// </summary>
     Technical = 4,
 }

@@ -1,7 +1,7 @@
 ﻿namespace MuseumSystem.Tests;
 
 /// <summary>
-/// тесты для поиска экскурсий в выбранном зале за указанный период
+/// Тесты для поиска экскурсий в выбранном зале за указанный период
 /// </summary>
 /// <param name="fixture">Фикстура с тестовыми данными</param>
 public class HallExcursionsTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
