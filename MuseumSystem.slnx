@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Элементы решения/">
     <File Path=".gitignore" />
+    <File Path="global.json" />
     <File Path="README.md" />
   </Folder>
   <Project Path="MuseumSystem.Domain/MuseumSystem.Domain.csproj" />
