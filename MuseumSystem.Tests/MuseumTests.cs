@@ -27,7 +27,7 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
         // act
         var actualTop5 = fixture.Tickets
             .SelectMany(t => t.Excursion.Exhibitions)
-            .GroupBy(e => e.Name)
+            .GroupBy(e => e.Name) // исправить на более уникальное значение чем имя (лучше ID)
             .OrderByDescending(g => g.Count())
             .Take(5)
             .Select(g => g.Key)
@@ -170,3 +170,7 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
         int MinVisitorsPerDay,
         int MaxVisitorsPerDay);
 }
+
+/// record сам по себе чутка нарушает DOM структуру - поэтому 
+/// лучше его не использовать (здесь он больше как 
+/// синтаксический сахар для меньшего количества строк)
