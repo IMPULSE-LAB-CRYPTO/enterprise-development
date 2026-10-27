@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
 using MuseumSystem.Domain.Data;
@@ -8,14 +10,18 @@ namespace MuseumSystem.Services.Services;
 
 public class ExhibitionService : IExhibitionService
 {
+    private readonly ILogger<ExhibitionService> _logger;
     private readonly List<Exhibition> _exhibitions;
     private readonly object _lock = new();
     private int _nextId;
 
-    public ExhibitionService()
+    public ExhibitionService() : this(NullLogger<ExhibitionService>.Instance) { }
+
+    public ExhibitionService(ILogger<ExhibitionService> logger)
     {
+        _logger = logger;
         _exhibitions = MuseumDataSeeder.GetExhibitions();
-        _nextId = _exhibitions.Any() ? _exhibitions.Max(e => e.Id) + 1 : 1;
+        _nextId = _exhibitions.Count > 0 ? _exhibitions.Max(e => e.Id) + 1 : 1;
     }
 
     public Task<IEnumerable<ExhibitionResponse>> GetAllAsync()
@@ -40,6 +46,7 @@ public class ExhibitionService : IExhibitionService
     {
         lock (_lock)
         {
+            _logger.LogInformation("Создание новой выставки: {Name}", request.Name);
             var newEntity = new Exhibition
             {
                 Id = _nextId++,
@@ -59,8 +66,13 @@ public class ExhibitionService : IExhibitionService
         lock (_lock)
         {
             var entity = _exhibitions.FirstOrDefault(e => e.Id == id);
-            if (entity == null) return Task.FromResult(false);
+            if (entity == null)
+            {
+                _logger.LogWarning("Выставка с ID {Id} не найдена для обновления", id);
+                return Task.FromResult(false);
+            }
 
+            _logger.LogInformation("Обновление выставки {Id}", id);
             entity.Name = request.Name;
             entity.Theme = request.Theme;
             entity.HallNumber = request.HallNumber;
@@ -76,8 +88,13 @@ public class ExhibitionService : IExhibitionService
         lock (_lock)
         {
             var entity = _exhibitions.FirstOrDefault(e => e.Id == id);
-            if (entity == null) return Task.FromResult(false);
+            if (entity == null)
+            {
+                _logger.LogWarning("Выставка с ID {Id} не найдена для удаления", id);
+                return Task.FromResult(false);
+            }
 
+            _logger.LogInformation("Удаление выставки {Id}", id);
             _exhibitions.Remove(entity);
             return Task.FromResult(true);
         }

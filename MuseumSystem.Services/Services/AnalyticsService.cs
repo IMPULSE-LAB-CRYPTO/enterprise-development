@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
 using MuseumSystem.Domain.Data;
@@ -8,12 +10,15 @@ namespace MuseumSystem.Services.Services;
 
 public class AnalyticsService : IAnalyticsService
 {
+    private readonly ILogger<AnalyticsService> _logger;
     private readonly List<Ticket> _tickets;
     private readonly List<Excursion> _excursions;
 
-    public AnalyticsService()
+    public AnalyticsService() : this(NullLogger<AnalyticsService>.Instance) { }
+
+    public AnalyticsService(ILogger<AnalyticsService> logger)
     {
-        // ИСПРАВЛЕНО
+        _logger = logger;
         var exhibitions = MuseumDataSeeder.GetExhibitions();
         _excursions = MuseumDataSeeder.GetExcursions(exhibitions);
         _tickets = MuseumDataSeeder.GetTickets(_excursions, MuseumDataSeeder.GetVisitors());
@@ -21,6 +26,7 @@ public class AnalyticsService : IAnalyticsService
 
     public Task<IEnumerable<TopExhibitionResponse>> GetTop5ExhibitionsByVisitorsAsync()
     {
+        _logger.LogInformation("Запрос топ-5 выставок по посетителям");
         var result = _tickets
             .SelectMany(t => t.Excursion.Exhibitions)
             .GroupBy(e => new { e.Id, e.Name })
@@ -39,6 +45,7 @@ public class AnalyticsService : IAnalyticsService
 
     public Task<IEnumerable<ExcursionWithParticipantsResponse>> GetExcursionsWithMinimalParticipantsAsync()
     {
+        _logger.LogInformation("Запрос экскурсий с минимальным числом участников");
         var excursionsWithCount = _tickets
             .GroupBy(t => t.Excursion.Id)
             .Select(g => new { Excursion = g.First().Excursion, Count = g.Count() })
@@ -64,6 +71,7 @@ public class AnalyticsService : IAnalyticsService
 
     public Task<IEnumerable<ThemeSummaryResponse>> GetThemeSummaryForPeriodAsync(DateTime from, DateTime to)
     {
+        _logger.LogInformation("Запрос сводки по тематикам за период с {From} по {To}", from, to);
         var result = _tickets
             .Where(t => t.Excursion.StartsAt >= from && t.Excursion.StartsAt <= to)
             .SelectMany(t => t.Excursion.Exhibitions
@@ -88,6 +96,7 @@ public class AnalyticsService : IAnalyticsService
 
     public Task<IEnumerable<ExcursionInHallResponse>> GetExcursionsInHallForPeriodAsync(int hallNumber, DateTime from, DateTime to)
     {
+        _logger.LogInformation("Запрос экскурсий в зале {HallNumber} за период", hallNumber);
         var result = _excursions
             .Where(e => e.Exhibitions.Any(ex => ex.HallNumber == hallNumber)
                         && e.StartsAt >= from
@@ -96,7 +105,7 @@ public class AnalyticsService : IAnalyticsService
             {
                 ExcursionId = e.Id,
                 StartsAt = e.StartsAt,
-                Duration = TimeSpan.FromMinutes(e.DurationMinutes) // ИСПРАВЛЕНО
+                Duration = TimeSpan.FromMinutes(e.DurationMinutes)
             })
             .OrderBy(x => x.ExcursionId)
             .ToList();
@@ -106,6 +115,7 @@ public class AnalyticsService : IAnalyticsService
 
     public Task<IEnumerable<VisitorResponse>> GetVisitorsOfSelectedExcursionAsync(int excursionId)
     {
+        _logger.LogInformation("Запрос посетителей экскурсии {ExcursionId}", excursionId);
         var result = _tickets
             .Where(t => t.Excursion.Id == excursionId)
             .Select(t => t.Visitor.ToResponse())
