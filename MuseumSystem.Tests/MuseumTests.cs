@@ -27,10 +27,10 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
         // act
         var actualTop5 = fixture.Tickets
             .SelectMany(t => t.Excursion.Exhibitions)
-            .GroupBy(e => new { e.Id, e.Name })
+            .GroupBy(e => e.Name)
             .OrderByDescending(g => g.Count())
             .Take(5)
-            .Select(g => g.Key.Name)
+            .Select(g => g.Key)
             .ToList();
 
         // assert
@@ -160,15 +160,48 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
     }
 
     /// <summary>
-    /// Сводная информация о посещаемости по тематике
+    /// Сводная информация по одной тематике (класс с равенством по значению)
     /// </summary>
-    public class ThemeSummary
+    private sealed class ThemeSummary : IEquatable<ThemeSummary>
     {
-        public string Theme { get; init; } = string.Empty;
-        public int TotalVisitors { get; init; }
-        public decimal TotalCost { get; init; }
-        public double AvgVisitors { get; init; }
-        public int MinVisitors { get; init; }
-        public int MaxVisitors { get; init; }
+        public ThemeSummary(
+            ExhibitionTheme Theme,
+            int TotalVisitors,
+            decimal TotalCost,
+            double AverageVisitorsPerDay,
+            int MinVisitorsPerDay,
+            int MaxVisitorsPerDay)
+        {
+            this.Theme = Theme;
+            this.TotalVisitors = TotalVisitors;
+            this.TotalCost = TotalCost;
+            this.AverageVisitorsPerDay = AverageVisitorsPerDay;
+            this.MinVisitorsPerDay = MinVisitorsPerDay;
+            this.MaxVisitorsPerDay = MaxVisitorsPerDay;
+        }
+
+        public ExhibitionTheme Theme { get; }
+        public int TotalVisitors { get; }
+        public decimal TotalCost { get; }
+        public double AverageVisitorsPerDay { get; }
+        public int MinVisitorsPerDay { get; }
+        public int MaxVisitorsPerDay { get; }
+
+        public bool Equals(ThemeSummary? other) =>
+            other is not null
+            && Theme == other.Theme
+            && TotalVisitors == other.TotalVisitors
+            && TotalCost == other.TotalCost
+            && AverageVisitorsPerDay.Equals(other.AverageVisitorsPerDay)
+            && MinVisitorsPerDay == other.MinVisitorsPerDay
+            && MaxVisitorsPerDay == other.MaxVisitorsPerDay;
+
+        public override bool Equals(object? obj) => Equals(obj as ThemeSummary);
+
+        public override int GetHashCode() =>
+            HashCode.Combine(Theme, TotalVisitors, TotalCost, AverageVisitorsPerDay, MinVisitorsPerDay, MaxVisitorsPerDay);
+
+        public override string ToString() =>
+            $"ThemeSummary {{ Theme = {Theme}, TotalVisitors = {TotalVisitors}, TotalCost = {TotalCost}, AverageVisitorsPerDay = {AverageVisitorsPerDay}, MinVisitorsPerDay = {MinVisitorsPerDay}, MaxVisitorsPerDay = {MaxVisitorsPerDay} }}";
     }
 }
