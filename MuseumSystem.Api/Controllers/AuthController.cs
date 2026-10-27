@@ -12,7 +12,7 @@ namespace MuseumSystem.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IConfiguration configuration) : ControllerBase // Прайм конструктор
 {
     /// <summary>
     /// Авторизация и получение JWT токена
@@ -26,16 +26,24 @@ public class AuthController : ControllerBase
         if (request.Username != "admin" || request.Password != "password")
             return Unauthorized("Неверный логин или пароль");
 
+        // ИСПРАВЛЕНО: Читаем настройки из конфигурации
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("SecretKey не найден");
+        var issuer = jwtSettings["Issuer"];
+        var audience = jwtSettings["Audience"];
+
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes("SuperSecretKeyForMuseumSystemLab2_1234567890!");
+        var key = Encoding.UTF8.GetBytes(secretKey);
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, request.Username) }),
             Expires = DateTime.UtcNow.AddHours(1),
-            Issuer = "MuseumSystem",
-            Audience = "MuseumSystemUsers",
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
+
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
         return Ok(new LoginResponse { Token = tokenHandler.WriteToken(token) });
