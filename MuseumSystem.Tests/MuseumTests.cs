@@ -27,10 +27,10 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
         // act
         var actualTop5 = fixture.Tickets
             .SelectMany(t => t.Excursion.Exhibitions)
-            .GroupBy(e => e.Name) // исправить на более уникальное значение чем имя (лучше ID)
+            .GroupBy(e => new { e.Id, e.Name })
             .OrderByDescending(g => g.Count())
             .Take(5)
-            .Select(g => g.Key)
+            .Select(g => g.Key.Name)
             .ToList();
 
         // assert
@@ -160,17 +160,15 @@ public class MuseumTests(MuseumFixture fixture) : IClassFixture<MuseumFixture>
     }
 
     /// <summary>
-    /// Сводная информация по одной тематике
+    /// Сводная информация о посещаемости по тематике
     /// </summary>
-    private sealed record ThemeSummary(
-        ExhibitionTheme Theme,
-        int TotalVisitors,
-        decimal TotalCost,
-        double AverageVisitorsPerDay,
-        int MinVisitorsPerDay,
-        int MaxVisitorsPerDay);
+    public class ThemeSummary
+    {
+        public string Theme { get; init; } = string.Empty;
+        public int TotalVisitors { get; init; }
+        public decimal TotalCost { get; init; }
+        public double AvgVisitors { get; init; }
+        public int MinVisitors { get; init; }
+        public int MaxVisitors { get; init; }
+    }
 }
-
-/// record сам по себе чутка нарушает DOM структуру - поэтому 
-/// лучше его не использовать (здесь он больше как 
-/// синтаксический сахар для меньшего количества строк)
