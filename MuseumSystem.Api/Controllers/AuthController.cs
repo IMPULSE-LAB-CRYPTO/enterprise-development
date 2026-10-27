@@ -7,21 +7,22 @@ using MuseumSystem.Contracts.Models;
 
 namespace MuseumSystem.Api.Controllers;
 
+/// <summary>
+/// Аутентификация пользователей
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
-
-    public AuthController(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
+    /// <summary>
+    /// Авторизация и получение JWT токена
+    /// </summary>
     [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        // Для теста
+        // Для теста используем жестко заданного пользователя
         if (request.Username != "admin" || request.Password != "password")
             return Unauthorized("Неверный логин или пароль");
 

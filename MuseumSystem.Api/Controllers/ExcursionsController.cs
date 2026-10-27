@@ -5,43 +5,67 @@ using MuseumSystem.Contracts.Models;
 
 namespace MuseumSystem.Api.Controllers;
 
+/// <summary>
+/// Управление экскурсиями
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ExcursionsController : ControllerBase
+public class ExcursionsController(IExcursionService service) : ControllerBase
 {
-    private readonly IExcursionService _service;
-
-    public ExcursionsController(IExcursionService service) => _service = service;
-
+    /// <summary>
+    /// Получить список всех экскурсий
+    /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
+    [ProducesResponseType(typeof(IEnumerable<ExcursionResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ExcursionResponse>>> GetAll()
+        => Ok(await service.GetAllAsync());
 
+    /// <summary>
+    /// Получить экскурсию по идентификатору
+    /// </summary>
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    [ProducesResponseType(typeof(ExcursionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ExcursionResponse>> GetById(int id)
     {
-        var result = await _service.GetByIdAsync(id);
+        var result = await service.GetByIdAsync(id);
         return result == null ? NotFound() : Ok(result);
     }
 
+    /// <summary>
+    /// Создать новую экскурсию
+    /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ExcursionCreateRequest request)
+    [ProducesResponseType(typeof(ExcursionResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ExcursionResponse>> Create([FromBody] ExcursionCreateRequest request)
     {
-        var result = await _service.CreateAsync(request);
+        var result = await service.CreateAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    /// <summary>
+    /// Обновить экскурсию
+    /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] ExcursionUpdateRequest request)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Update(int id, [FromBody] ExcursionUpdateRequest request)
     {
-        var success = await _service.UpdateAsync(id, request);
+        var success = await service.UpdateAsync(id, request);
         return success ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// Удалить экскурсию
+    /// </summary>
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Delete(int id)
     {
-        var success = await _service.DeleteAsync(id);
+        var success = await service.DeleteAsync(id);
         return success ? NoContent() : NotFound();
     }
 }
