@@ -44,7 +44,7 @@ public class AnalyticsService : IAnalyticsService
             .Select(g => new { Excursion = g.First().Excursion, Count = g.Count() })
             .ToList();
 
-        if (!excursionsWithCount.Any())
+        if (excursionsWithCount.Count == 0)
             return Task.FromResult<IEnumerable<ExcursionWithParticipantsResponse>>(new List<ExcursionWithParticipantsResponse>());
 
         var minCount = excursionsWithCount.Min(x => x.Count);
