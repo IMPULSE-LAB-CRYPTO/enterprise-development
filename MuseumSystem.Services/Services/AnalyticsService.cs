@@ -1,33 +1,22 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
-using MuseumSystem.Domain.Data;
-using MuseumSystem.Domain.Entities;
-using MuseumSystem.Services.Mappings;
+using MuseumSystem.Domain.Interfaces;
+using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
-public class AnalyticsService : IAnalyticsService
+public class AnalyticsService(
+    ITicketRepository ticketRepository,
+    IExcursionRepository excursionRepository,
+    ILogger<AnalyticsService> logger) : IAnalyticsService
 {
-    private readonly ILogger<AnalyticsService> _logger;
-    private readonly List<Ticket> _tickets;
-    private readonly List<Excursion> _excursions;
-
-    public AnalyticsService() : this(NullLogger<AnalyticsService>.Instance) { }
-
-    public AnalyticsService(ILogger<AnalyticsService> logger)
+    public async Task<IEnumerable<TopExhibitionResponse>> GetTop5ExhibitionsByVisitorsAsync()
     {
-        _logger = logger;
-        var exhibitions = MuseumDataSeeder.GetExhibitions();
-        _excursions = MuseumDataSeeder.GetExcursions(exhibitions);
-        _tickets = MuseumDataSeeder.GetTickets(_excursions, MuseumDataSeeder.GetVisitors());
-    }
+        logger.LogInformation("Запрос топ-5 выставок по посетителям");
+        var tickets = await ticketRepository.GetAllAsync();
 
-    public Task<IEnumerable<TopExhibitionResponse>> GetTop5ExhibitionsByVisitorsAsync()
-    {
-        _logger.LogInformation("Запрос топ-5 выставок по посетителям");
-        var result = _tickets
+        return tickets
             .SelectMany(t => t.Excursion.Exhibitions)
             .GroupBy(e => new { e.Id, e.Name })
             .OrderByDescending(g => g.Count())
@@ -39,24 +28,24 @@ public class AnalyticsService : IAnalyticsService
                 VisitorCount = g.Count()
             })
             .ToList();
-
-        return Task.FromResult<IEnumerable<TopExhibitionResponse>>(result);
     }
 
-    public Task<IEnumerable<ExcursionWithParticipantsResponse>> GetExcursionsWithMinimalParticipantsAsync()
+    public async Task<IEnumerable<ExcursionWithParticipantsResponse>> GetExcursionsWithMinimalParticipantsAsync()
     {
-        _logger.LogInformation("Запрос экскурсий с минимальным числом участников");
-        var excursionsWithCount = _tickets
+        logger.LogInformation("Запрос экскурсий с минимальным числом участников");
+        var tickets = await ticketRepository.GetAllAsync();
+
+        var excursionsWithCount = tickets
             .GroupBy(t => t.Excursion.Id)
             .Select(g => new { Excursion = g.First().Excursion, Count = g.Count() })
             .ToList();
 
         if (excursionsWithCount.Count == 0)
-            return Task.FromResult<IEnumerable<ExcursionWithParticipantsResponse>>(new List<ExcursionWithParticipantsResponse>());
+            return new List<ExcursionWithParticipantsResponse>();
 
         var minCount = excursionsWithCount.Min(x => x.Count);
 
-        var result = excursionsWithCount
+        return excursionsWithCount
             .Where(x => x.Count == minCount)
             .Select(x => new ExcursionWithParticipantsResponse
             {
@@ -65,14 +54,14 @@ public class AnalyticsService : IAnalyticsService
                 ParticipantCount = x.Count
             })
             .ToList();
-
-        return Task.FromResult<IEnumerable<ExcursionWithParticipantsResponse>>(result);
     }
 
-    public Task<IEnumerable<ThemeSummaryResponse>> GetThemeSummaryForPeriodAsync(DateTime from, DateTime to)
+    public async Task<IEnumerable<ThemeSummaryResponse>> GetThemeSummaryForPeriodAsync(DateTime from, DateTime to)
     {
-        _logger.LogInformation("Запрос сводки по тематикам за период с {From} по {To}", from, to);
-        var result = _tickets
+        logger.LogInformation("Запрос сводки по тематикам за период с {From} по {To}", from, to);
+        var tickets = await ticketRepository.GetAllAsync();
+
+        return tickets
             .Where(t => t.Excursion.StartsAt >= from && t.Excursion.StartsAt <= to)
             .SelectMany(t => t.Excursion.Exhibitions
                 .Select(e => e.Theme)
@@ -90,14 +79,14 @@ public class AnalyticsService : IAnalyticsService
             })
             .OrderBy(s => s.Theme)
             .ToList();
-
-        return Task.FromResult<IEnumerable<ThemeSummaryResponse>>(result);
     }
 
-    public Task<IEnumerable<ExcursionInHallResponse>> GetExcursionsInHallForPeriodAsync(int hallNumber, DateTime from, DateTime to)
+    public async Task<IEnumerable<ExcursionInHallResponse>> GetExcursionsInHallForPeriodAsync(int hallNumber, DateTime from, DateTime to)
     {
-        _logger.LogInformation("Запрос экскурсий в зале {HallNumber} за период", hallNumber);
-        var result = _excursions
+        logger.LogInformation("Запрос экскурсий в зале {HallNumber} за период", hallNumber);
+        var excursions = await excursionRepository.GetAllAsync();
+
+        return excursions
             .Where(e => e.Exhibitions.Any(ex => ex.HallNumber == hallNumber)
                         && e.StartsAt >= from
                         && e.StartsAt <= to)
@@ -109,19 +98,17 @@ public class AnalyticsService : IAnalyticsService
             })
             .OrderBy(x => x.ExcursionId)
             .ToList();
-
-        return Task.FromResult<IEnumerable<ExcursionInHallResponse>>(result);
     }
 
-    public Task<IEnumerable<VisitorResponse>> GetVisitorsOfSelectedExcursionAsync(int excursionId)
+    public async Task<IEnumerable<VisitorResponse>> GetVisitorsOfSelectedExcursionAsync(int excursionId)
     {
-        _logger.LogInformation("Запрос посетителей экскурсии {ExcursionId}", excursionId);
-        var result = _tickets
+        logger.LogInformation("Запрос посетителей экскурсии {ExcursionId}", excursionId);
+        var tickets = await ticketRepository.GetAllAsync();
+
+        return tickets
             .Where(t => t.Excursion.Id == excursionId)
-            .Select(t => t.Visitor.ToResponse())
+            .Select(t => t.Visitor.ToDto())
             .OrderBy(v => v.FullName)
             .ToList();
-
-        return Task.FromResult<IEnumerable<VisitorResponse>>(result);
     }
 }

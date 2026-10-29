@@ -1,102 +1,47 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
-using MuseumSystem.Domain.Data;
-using MuseumSystem.Domain.Entities;
-using MuseumSystem.Services.Mappings;
+using MuseumSystem.Domain.Interfaces;
+using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
-public class ExhibitionService : IExhibitionService
+public class ExhibitionService(
+    IExhibitionRepository repository,
+    ILogger<ExhibitionService> logger) : IExhibitionService
 {
-    private readonly ILogger<ExhibitionService> _logger;
-    private readonly List<Exhibition> _exhibitions;
-    private readonly object _lock = new();
-    private int _nextId;
-
-    public ExhibitionService() : this(NullLogger<ExhibitionService>.Instance) { }
-
-    public ExhibitionService(ILogger<ExhibitionService> logger)
+    public async Task<IEnumerable<ExhibitionResponse>> GetAllAsync()
     {
-        _logger = logger;
-        _exhibitions = MuseumDataSeeder.GetExhibitions();
-        _nextId = _exhibitions.Count > 0 ? _exhibitions.Max(e => e.Id) + 1 : 1;
+        var entities = await repository.GetAllAsync();
+        return entities.Select(e => e.ToDto());
     }
 
-    public Task<IEnumerable<ExhibitionResponse>> GetAllAsync()
+    public async Task<ExhibitionResponse?> GetByIdAsync(int id)
     {
-        lock (_lock)
-        {
-            var result = _exhibitions.Select(e => e.ToResponse()).ToList();
-            return Task.FromResult<IEnumerable<ExhibitionResponse>>(result);
-        }
+        var entity = await repository.GetByIdAsync(id);
+        return entity?.ToDto();
     }
 
-    public Task<ExhibitionResponse?> GetByIdAsync(int id)
+    public async Task<ExhibitionResponse> CreateAsync(ExhibitionCreateRequest request)
     {
-        lock (_lock)
-        {
-            var entity = _exhibitions.FirstOrDefault(e => e.Id == id);
-            return Task.FromResult(entity?.ToResponse());
-        }
+        logger.LogInformation("Создание выставки {Name}", request.Name);
+        var entity = request.ToEntity();
+        var created = await repository.AddAsync(entity);
+        return created.ToDto();
     }
 
-    public Task<ExhibitionResponse> CreateAsync(ExhibitionCreateRequest request)
+    public async Task<bool> UpdateAsync(int id, ExhibitionUpdateRequest request)
     {
-        lock (_lock)
-        {
-            _logger.LogInformation("Создание новой выставки: {Name}", request.Name);
-            var newEntity = new Exhibition
-            {
-                Id = _nextId++,
-                Name = request.Name,
-                Theme = request.Theme,
-                HallNumber = request.HallNumber,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate
-            };
-            _exhibitions.Add(newEntity);
-            return Task.FromResult(newEntity.ToResponse());
-        }
+        var entity = await repository.GetByIdAsync(id);
+        if (entity == null) return false;
+
+        entity.UpdateEntity(request);
+        var updated = await repository.UpdateAsync(entity);
+        return updated != null;
     }
 
-    public Task<bool> UpdateAsync(int id, ExhibitionUpdateRequest request)
+    public async Task<bool> DeleteAsync(int id)
     {
-        lock (_lock)
-        {
-            var entity = _exhibitions.FirstOrDefault(e => e.Id == id);
-            if (entity == null)
-            {
-                _logger.LogWarning("Выставка с ID {Id} не найдена для обновления", id);
-                return Task.FromResult(false);
-            }
-
-            _logger.LogInformation("Обновление выставки {Id}", id);
-            entity.Name = request.Name;
-            entity.Theme = request.Theme;
-            entity.HallNumber = request.HallNumber;
-            entity.StartDate = request.StartDate;
-            entity.EndDate = request.EndDate;
-
-            return Task.FromResult(true);
-        }
-    }
-
-    public Task<bool> DeleteAsync(int id)
-    {
-        lock (_lock)
-        {
-            var entity = _exhibitions.FirstOrDefault(e => e.Id == id);
-            if (entity == null)
-            {
-                _logger.LogWarning("Выставка с ID {Id} не найдена для удаления", id);
-                return Task.FromResult(false);
-            }
-
-            _logger.LogInformation("Удаление выставки {Id}", id);
-            _exhibitions.Remove(entity);
-            return Task.FromResult(true);
-        }
+        return await repository.DeleteAsync(id);
     }
 }

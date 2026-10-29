@@ -1,119 +1,63 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
-using MuseumSystem.Domain.Data;
-using MuseumSystem.Domain.Entities;
-using MuseumSystem.Services.Mappings;
+using MuseumSystem.Domain.Interfaces;
+using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
-public class TicketService : ITicketService
+public class TicketService(
+    ITicketRepository repository,
+    IExcursionRepository excursionRepository,
+    IVisitorRepository visitorRepository,
+    ILogger<TicketService> logger) : ITicketService
 {
-    private readonly ILogger<TicketService> _logger;
-    private readonly List<Ticket> _tickets;
-    private readonly List<Excursion> _excursions;
-    private readonly List<Visitor> _visitors;
-    private readonly object _lock = new();
-    private int _nextId;
-
-    public TicketService() : this(NullLogger<TicketService>.Instance) { }
-
-    public TicketService(ILogger<TicketService> logger)
+    public async Task<IEnumerable<TicketResponse>> GetAllAsync()
     {
-        _logger = logger;
-        var exhibitions = MuseumDataSeeder.GetExhibitions();
-        _excursions = MuseumDataSeeder.GetExcursions(exhibitions);
-        _visitors = MuseumDataSeeder.GetVisitors();
-        _tickets = MuseumDataSeeder.GetTickets(_excursions, _visitors);
-        _nextId = _tickets.Count > 0 ? _tickets.Max(t => t.Id) + 1 : 1;
+        var entities = await repository.GetAllAsync();
+        return entities.Select(t => t.ToDto());
     }
 
-    public Task<IEnumerable<TicketResponse>> GetAllAsync()
+    public async Task<TicketResponse?> GetByIdAsync(int id)
     {
-        lock (_lock)
-        {
-            var result = _tickets.Select(t => t.ToResponse()).ToList();
-            return Task.FromResult<IEnumerable<TicketResponse>>(result);
-        }
+        var entity = await repository.GetByIdAsync(id);
+        return entity?.ToDto();
     }
 
-    public Task<TicketResponse?> GetByIdAsync(int id)
+    public async Task<TicketResponse> CreateAsync(TicketCreateRequest request)
     {
-        lock (_lock)
+        var excursion = await excursionRepository.GetByIdAsync(request.ExcursionId);
+        var visitor = await visitorRepository.GetByIdAsync(request.VisitorId);
+
+        if (excursion == null || visitor == null)
         {
-            var entity = _tickets.FirstOrDefault(t => t.Id == id);
-            return Task.FromResult(entity?.ToResponse());
+            logger.LogError("Ошибка: Экскурсия {ExcursionId} или посетитель {VisitorId} не найдены", request.ExcursionId, request.VisitorId);
+            throw new ArgumentException("Экскурсия или посетитель не найдены");
         }
+
+        logger.LogInformation("Создание билета для экскурсии {ExcursionId}", request.ExcursionId);
+        var entity = request.ToEntity(excursion, visitor);
+        var created = await repository.AddAsync(entity);
+        return created.ToDto();
     }
 
-    public Task<TicketResponse> CreateAsync(TicketCreateRequest request)
+    public async Task<bool> UpdateAsync(int id, TicketUpdateRequest request)
     {
-        lock (_lock)
-        {
-            var excursion = _excursions.FirstOrDefault(e => e.Id == request.ExcursionId);
-            var visitor = _visitors.FirstOrDefault(v => v.Id == request.VisitorId);
+        var entity = await repository.GetByIdAsync(id);
+        if (entity == null) return false;
 
-            if (excursion == null || visitor == null)
-            {
-                _logger.LogError("Ошибка при создании билета: Экскурсия {ExcursionId} или посетитель {VisitorId} не найдены", request.ExcursionId, request.VisitorId);
-                throw new ArgumentException("Экскурсия или посетитель не найдены");
-            }
+        var excursion = await excursionRepository.GetByIdAsync(request.ExcursionId);
+        var visitor = await visitorRepository.GetByIdAsync(request.VisitorId);
 
-            _logger.LogInformation("Создание билета для экскурсии {ExcursionId}", request.ExcursionId);
-            var newEntity = new Ticket
-            {
-                Id = _nextId++,
-                Excursion = excursion,
-                Visitor = visitor,
-                Type = request.Type,
-                Price = request.Price
-            };
-            _tickets.Add(newEntity);
-            return Task.FromResult(newEntity.ToResponse());
-        }
+        if (excursion == null || visitor == null) return false;
+
+        entity.UpdateEntity(request, excursion, visitor);
+        var updated = await repository.UpdateAsync(entity);
+        return updated != null;
     }
 
-    public Task<bool> UpdateAsync(int id, TicketUpdateRequest request)
+    public async Task<bool> DeleteAsync(int id)
     {
-        lock (_lock)
-        {
-            var entity = _tickets.FirstOrDefault(t => t.Id == id);
-            if (entity == null)
-            {
-                _logger.LogWarning("Билет с ID {Id} не найден", id);
-                return Task.FromResult(false);
-            }
-
-            var excursion = _excursions.FirstOrDefault(e => e.Id == request.ExcursionId);
-            var visitor = _visitors.FirstOrDefault(v => v.Id == request.VisitorId);
-
-            if (excursion == null || visitor == null) return Task.FromResult(false);
-
-            _logger.LogInformation("Обновление билета {Id}", id);
-            entity.Excursion = excursion;
-            entity.Visitor = visitor;
-            entity.Type = request.Type;
-            entity.Price = request.Price;
-
-            return Task.FromResult(true);
-        }
-    }
-
-    public Task<bool> DeleteAsync(int id)
-    {
-        lock (_lock)
-        {
-            var entity = _tickets.FirstOrDefault(t => t.Id == id);
-            if (entity == null)
-            {
-                _logger.LogWarning("Билет с ID {Id} не найден для удаления", id);
-                return Task.FromResult(false);
-            }
-
-            _logger.LogInformation("Удаление билета {Id}", id);
-            _tickets.Remove(entity);
-            return Task.FromResult(true);
-        }
+        return await repository.DeleteAsync(id);
     }
 }

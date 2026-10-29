@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Models;
 using MuseumSystem.Domain.Enums;
+using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
 
 namespace MuseumSystem.Tests;
@@ -9,13 +11,17 @@ public class ServiceTests
 
     // тесты для EXHIBITION SERVICE
 
-
     [Fact]
     public async Task ExhibitionService_GetAll_ReturnsSeededData()
     {
-        var service = new ExhibitionService();
+        // Arrange
+        var repo = new InMemoryExhibitionRepository();
+        var service = new ExhibitionService(repo, NullLogger<ExhibitionService>.Instance);
+
+        // Act
         var result = await service.GetAllAsync();
 
+        // Assert
         Assert.NotNull(result);
         Assert.True(result.Count() >= 10);
     }
@@ -23,7 +29,10 @@ public class ServiceTests
     [Fact]
     public async Task ExhibitionService_CreateUpdateDelete_WorksCorrectly()
     {
-        var service = new ExhibitionService();
+        // Arrange
+        var repo = new InMemoryExhibitionRepository();
+        var service = new ExhibitionService(repo, NullLogger<ExhibitionService>.Instance);
+
         var newExhibition = new ExhibitionCreateRequest
         {
             Name = "Тестовая выставка",
@@ -62,16 +71,20 @@ public class ServiceTests
         Assert.Null(deleted);
     }
 
-
     // тесты для EXCURSION SERVICE
-
 
     [Fact]
     public async Task ExcursionService_GetAll_ReturnsSeededData()
     {
-        var service = new ExcursionService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var service = new ExcursionService(excursionRepo, exhibitionRepo, NullLogger<ExcursionService>.Instance);
+
+        // Act
         var result = await service.GetAllAsync();
 
+        // Assert
         Assert.NotNull(result);
         Assert.True(result.Count() >= 10);
     }
@@ -79,12 +92,16 @@ public class ServiceTests
     [Fact]
     public async Task ExcursionService_CreateUpdateDelete_WorksCorrectly()
     {
-        var service = new ExcursionService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var service = new ExcursionService(excursionRepo, exhibitionRepo, NullLogger<ExcursionService>.Instance);
+
         var newExcursion = new ExcursionCreateRequest
         {
             StartsAt = new DateTime(2026, 10, 10, 12, 0, 0),
             Duration = TimeSpan.FromMinutes(90),
-            ExhibitionIds = new List<int> { 1, 2 } // айди из сидера
+            ExhibitionIds = new List<int> { 1, 2 } // ID из сидера
         };
 
         // Create
@@ -113,16 +130,19 @@ public class ServiceTests
         Assert.True(isDeleted);
     }
 
-
     // тесты для VISITOR SERVICE
-
 
     [Fact]
     public async Task VisitorService_GetAll_ReturnsSeededData()
     {
-        var service = new VisitorService();
+        // Arrange
+        var repo = new InMemoryVisitorRepository();
+        var service = new VisitorService(repo, NullLogger<VisitorService>.Instance);
+
+        // Act
         var result = await service.GetAllAsync();
 
+        // Assert
         Assert.NotNull(result);
         Assert.True(result.Count() >= 10);
     }
@@ -130,7 +150,10 @@ public class ServiceTests
     [Fact]
     public async Task VisitorService_CreateUpdateDelete_WorksCorrectly()
     {
-        var service = new VisitorService();
+        // Arrange
+        var repo = new InMemoryVisitorRepository();
+        var service = new VisitorService(repo, NullLogger<VisitorService>.Instance);
+
         var newVisitor = new VisitorCreateRequest
         {
             FullName = "Иванов Иван Иванович",
@@ -162,16 +185,23 @@ public class ServiceTests
         Assert.True(isDeleted);
     }
 
-
-    // тесты для TICKET SERVICE 
-
+    // тесты для TICKET SERVICE
 
     [Fact]
     public async Task TicketService_GetAll_ReturnsSeededData()
     {
-        var service = new TicketService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var visitorRepo = new InMemoryVisitorRepository();
+        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+
+        var service = new TicketService(ticketRepo, excursionRepo, visitorRepo, NullLogger<TicketService>.Instance);
+
+        // Act
         var result = await service.GetAllAsync();
 
+        // Assert
         Assert.NotNull(result);
         Assert.True(result.Count() >= 10);
     }
@@ -179,11 +209,18 @@ public class ServiceTests
     [Fact]
     public async Task TicketService_CreateUpdateDelete_WorksCorrectly()
     {
-        var service = new TicketService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var visitorRepo = new InMemoryVisitorRepository();
+        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+
+        var service = new TicketService(ticketRepo, excursionRepo, visitorRepo, NullLogger<TicketService>.Instance);
+
         var newTicket = new TicketCreateRequest
         {
-            ExcursionId = 1, // айди из сидера
-            VisitorId = 1,   // айди из сидера
+            ExcursionId = 1, // ID из сидера
+            VisitorId = 1,   // ID из сидера
             Type = TicketType.Adult,
             Price = 1500m
         };
@@ -215,16 +252,23 @@ public class ServiceTests
         Assert.True(isDeleted);
     }
 
-
     // тесты для ANALYTICS SERVICE
-
 
     [Fact]
     public async Task AnalyticsService_GetTop5Exhibitions_ReturnsFiveItems()
     {
-        var service = new AnalyticsService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var visitorRepo = new InMemoryVisitorRepository();
+        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+
+        var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
+
+        // Act
         var result = await service.GetTop5ExhibitionsByVisitorsAsync();
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(5, result.Count());
         Assert.True(result.First().VisitorCount >= result.Last().VisitorCount);
@@ -233,12 +277,21 @@ public class ServiceTests
     [Fact]
     public async Task AnalyticsService_GetThemeSummary_ReturnsDataForPeriod()
     {
-        var service = new AnalyticsService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var visitorRepo = new InMemoryVisitorRepository();
+        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+
+        var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
+
         var from = new DateTime(2026, 1, 1);
         var to = new DateTime(2026, 12, 31);
 
+        // Act
         var result = await service.GetThemeSummaryForPeriodAsync(from, to);
 
+        // Assert
         Assert.NotNull(result);
         Assert.NotEmpty(result);
         Assert.Equal(result.Count(), result.Select(x => x.Theme).Distinct().Count());
@@ -247,11 +300,20 @@ public class ServiceTests
     [Fact]
     public async Task AnalyticsService_GetVisitorsOfSelectedExcursion_ReturnsSortedByName()
     {
-        var service = new AnalyticsService();
+        // Arrange
+        var exhibitionRepo = new InMemoryExhibitionRepository();
+        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var visitorRepo = new InMemoryVisitorRepository();
+        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+
+        var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
+
         var excursionId = 3;
 
+        // Act
         var result = await service.GetVisitorsOfSelectedExcursionAsync(excursionId);
 
+        // Assert
         Assert.NotNull(result);
         if (result.Count() > 1)
         {

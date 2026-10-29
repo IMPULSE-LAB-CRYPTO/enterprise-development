@@ -3,12 +3,21 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MuseumSystem.Contracts.Interfaces;
+using MuseumSystem.Domain.Interfaces;
+using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Регистрация репозиториев (Singleton для сохранения данных в памяти)
+builder.Services.AddSingleton<IExhibitionRepository, InMemoryExhibitionRepository>();
+builder.Services.AddSingleton<IVisitorRepository, InMemoryVisitorRepository>();
+builder.Services.AddSingleton<IExcursionRepository, InMemoryExcursionRepository>();
+builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();
+
+// Регистрация сервисов
 builder.Services.AddSingleton<IExhibitionService, ExhibitionService>();
 builder.Services.AddSingleton<IExcursionService, ExcursionService>();
 builder.Services.AddSingleton<IVisitorService, VisitorService>();
