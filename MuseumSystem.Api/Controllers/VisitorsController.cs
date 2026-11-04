@@ -11,7 +11,9 @@ namespace MuseumSystem.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class VisitorsController(IVisitorService service) : ControllerBase
+public class VisitorsController(
+    IVisitorService service,
+    ILogger<VisitorsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получить список всех посетителей
@@ -19,7 +21,17 @@ public class VisitorsController(IVisitorService service) : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<VisitorResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<VisitorResponse>>> GetAll()
-        => Ok(await service.GetAllAsync());
+    {
+        try
+        {
+            return Ok(await service.GetAllAsync());
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении списка посетителей");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
+    }
 
     /// <summary>
     /// Получить посетителя по идентификатору
@@ -29,8 +41,21 @@ public class VisitorsController(IVisitorService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<VisitorResponse>> GetById(int id)
     {
-        var result = await service.GetByIdAsync(id);
-        return result == null ? NotFound() : Ok(result);
+        try
+        {
+            var result = await service.GetByIdAsync(id);
+            if (result == null)
+            {
+                logger.LogWarning("Посетитель с ID {Id} не найден", id);
+                return NotFound();
+            }
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении посетителя с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -41,8 +66,16 @@ public class VisitorsController(IVisitorService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<VisitorResponse>> Create([FromBody] VisitorCreateRequest request)
     {
-        var result = await service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await service.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при создании посетителя");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -53,8 +86,21 @@ public class VisitorsController(IVisitorService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(int id, [FromBody] VisitorUpdateRequest request)
     {
-        var success = await service.UpdateAsync(id, request);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.UpdateAsync(id, request);
+            if (!success)
+            {
+                logger.LogWarning("Посетитель с ID {Id} не найден для обновления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при обновлении посетителя с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -65,7 +111,20 @@ public class VisitorsController(IVisitorService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
-        var success = await service.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.DeleteAsync(id);
+            if (!success)
+            {
+                logger.LogWarning("Посетитель с ID {Id} не найден для удаления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении посетителя с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 }

@@ -10,8 +10,10 @@ namespace MuseumSystem.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // эндпоинты вместе сJWT-токеном
-public class ExhibitionsController(IExhibitionService service) : ControllerBase
+[Authorize]
+public class ExhibitionsController(
+    IExhibitionService service,
+    ILogger<ExhibitionsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получить список всех выставок
@@ -19,7 +21,18 @@ public class ExhibitionsController(IExhibitionService service) : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ExhibitionResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ExhibitionResponse>>> GetAll()
-        => Ok(await service.GetAllAsync());
+    {
+        try
+        {
+            var result = await service.GetAllAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении списка выставок");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
+    }
 
     /// <summary>
     /// Получить выставку по её идентификатору
@@ -29,8 +42,21 @@ public class ExhibitionsController(IExhibitionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ExhibitionResponse>> GetById(int id)
     {
-        var result = await service.GetByIdAsync(id);
-        return result == null ? NotFound() : Ok(result);
+        try
+        {
+            var result = await service.GetByIdAsync(id);
+            if (result == null)
+            {
+                logger.LogWarning("Выставка с ID {Id} не найдена", id);
+                return NotFound();
+            }
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении выставки с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -41,8 +67,16 @@ public class ExhibitionsController(IExhibitionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ExhibitionResponse>> Create([FromBody] ExhibitionCreateRequest request)
     {
-        var result = await service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await service.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при создании выставки");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -53,8 +87,21 @@ public class ExhibitionsController(IExhibitionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(int id, [FromBody] ExhibitionUpdateRequest request)
     {
-        var success = await service.UpdateAsync(id, request);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.UpdateAsync(id, request);
+            if (!success)
+            {
+                logger.LogWarning("Выставка с ID {Id} не найдена для обновления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при обновлении выставки с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -65,7 +112,20 @@ public class ExhibitionsController(IExhibitionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
-        var success = await service.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.DeleteAsync(id);
+            if (!success)
+            {
+                logger.LogWarning("Выставка с ID {Id} не найдена для удаления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении выставки с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 }

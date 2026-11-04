@@ -12,7 +12,9 @@ namespace MuseumSystem.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IConfiguration configuration) : ControllerBase // Прайм конструктор
+public class AuthController(
+    IConfiguration configuration,
+    ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>
     /// Авторизация и получение JWT токена
@@ -22,30 +24,41 @@ public class AuthController(IConfiguration configuration) : ControllerBase // П
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        // Для теста используем жестко заданного пользователя
-        if (request.Username != "admin" || request.Password != "password")
-            return Unauthorized("Неверный логин или пароль");
-
-        // ИСПРАВЛЕНО: Читаем настройки из конфигурации
-        var jwtSettings = configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("SecretKey не найден");
-        var issuer = jwtSettings["Issuer"];
-        var audience = jwtSettings["Audience"];
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(secretKey);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
+        try
         {
-            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, request.Username) }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            Issuer = issuer,
-            Audience = audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
+            // Для теста используем жестко заданного пользователя
+            if (request.Username != "admin" || request.Password != "password")
+            {
+                logger.LogWarning("Неудачная попытка входа для пользователя {Username}", request.Username);
+                return Unauthorized("Неверный логин или пароль");
+            }
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+            var jwtSettings = configuration.GetSection("JwtSettings");
+            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("SecretKey не найден");
+            var issuer = jwtSettings["Issuer"];
+            var audience = jwtSettings["Audience"];
 
-        return Ok(new LoginResponse { Token = tokenHandler.WriteToken(token) });
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(secretKey);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, request.Username) }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                Issuer = issuer,
+                Audience = audience,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            logger.LogInformation("Пользователь {Username} успешно авторизован", request.Username);
+
+            return Ok(new LoginResponse { Token = tokenHandler.WriteToken(token) });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при авторизации пользователя {Username}", request.Username);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 }

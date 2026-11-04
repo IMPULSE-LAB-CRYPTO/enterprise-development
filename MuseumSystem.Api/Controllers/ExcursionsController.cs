@@ -11,7 +11,9 @@ namespace MuseumSystem.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ExcursionsController(IExcursionService service) : ControllerBase
+public class ExcursionsController(
+    IExcursionService service,
+    ILogger<ExcursionsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получить список всех экскурсий
@@ -19,7 +21,17 @@ public class ExcursionsController(IExcursionService service) : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ExcursionResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ExcursionResponse>>> GetAll()
-        => Ok(await service.GetAllAsync());
+    {
+        try
+        {
+            return Ok(await service.GetAllAsync());
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении списка экскурсий");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
+    }
 
     /// <summary>
     /// Получить экскурсию по идентификатору
@@ -29,8 +41,21 @@ public class ExcursionsController(IExcursionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ExcursionResponse>> GetById(int id)
     {
-        var result = await service.GetByIdAsync(id);
-        return result == null ? NotFound() : Ok(result);
+        try
+        {
+            var result = await service.GetByIdAsync(id);
+            if (result == null)
+            {
+                logger.LogWarning("Экскурсия с ID {Id} не найдена", id);
+                return NotFound();
+            }
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении экскурсии с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -41,8 +66,16 @@ public class ExcursionsController(IExcursionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ExcursionResponse>> Create([FromBody] ExcursionCreateRequest request)
     {
-        var result = await service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await service.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при создании экскурсии");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -53,8 +86,21 @@ public class ExcursionsController(IExcursionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(int id, [FromBody] ExcursionUpdateRequest request)
     {
-        var success = await service.UpdateAsync(id, request);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.UpdateAsync(id, request);
+            if (!success)
+            {
+                logger.LogWarning("Экскурсия с ID {Id} не найдена для обновления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при обновлении экскурсии с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -65,7 +111,20 @@ public class ExcursionsController(IExcursionService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
-        var success = await service.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.DeleteAsync(id);
+            if (!success)
+            {
+                logger.LogWarning("Экскурсия с ID {Id} не найдена для удаления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении экскурсии с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 }

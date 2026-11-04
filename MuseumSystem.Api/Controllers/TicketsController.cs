@@ -11,7 +11,9 @@ namespace MuseumSystem.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class TicketsController(ITicketService service) : ControllerBase
+public class TicketsController(
+    ITicketService service,
+    ILogger<TicketsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получить список всех билетов
@@ -19,7 +21,17 @@ public class TicketsController(ITicketService service) : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TicketResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TicketResponse>>> GetAll()
-        => Ok(await service.GetAllAsync());
+    {
+        try
+        {
+            return Ok(await service.GetAllAsync());
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении списка билетов");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
+    }
 
     /// <summary>
     /// Получить билет по идентификатору
@@ -29,8 +41,21 @@ public class TicketsController(ITicketService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TicketResponse>> GetById(int id)
     {
-        var result = await service.GetByIdAsync(id);
-        return result == null ? NotFound() : Ok(result);
+        try
+        {
+            var result = await service.GetByIdAsync(id);
+            if (result == null)
+            {
+                logger.LogWarning("Билет с ID {Id} не найден", id);
+                return NotFound();
+            }
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при получении билета с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -48,7 +73,13 @@ public class TicketsController(ITicketService service) : ControllerBase
         }
         catch (ArgumentException ex)
         {
+            logger.LogWarning(ex, "Некорректные данные при создании билета");
             return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при создании билета");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
         }
     }
 
@@ -60,8 +91,21 @@ public class TicketsController(ITicketService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(int id, [FromBody] TicketUpdateRequest request)
     {
-        var success = await service.UpdateAsync(id, request);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.UpdateAsync(id, request);
+            if (!success)
+            {
+                logger.LogWarning("Билет с ID {Id} не найден для обновления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при обновлении билета с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 
     /// <summary>
@@ -72,7 +116,20 @@ public class TicketsController(ITicketService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
-        var success = await service.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
+        try
+        {
+            var success = await service.DeleteAsync(id);
+            if (!success)
+            {
+                logger.LogWarning("Билет с ID {Id} не найден для удаления", id);
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при удалении билета с ID {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
     }
 }
