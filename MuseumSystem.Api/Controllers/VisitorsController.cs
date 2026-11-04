@@ -108,17 +108,11 @@ public class VisitorsController(
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         try
         {
-            var success = await service.DeleteAsync(id);
-            if (!success)
-            {
-                logger.LogWarning("Посетитель с ID {Id} не найден для удаления", id);
-                return NotFound();
-            }
+            await service.DeleteAsync(id);
             return NoContent();
         }
         catch (Exception ex)

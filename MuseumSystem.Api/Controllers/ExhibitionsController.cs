@@ -24,8 +24,7 @@ public class ExhibitionsController(
     {
         try
         {
-            var result = await service.GetAllAsync();
-            return Ok(result);
+            return Ok(await service.GetAllAsync());
         }
         catch (Exception ex)
         {
@@ -109,17 +108,12 @@ public class ExhibitionsController(
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         try
         {
-            var success = await service.DeleteAsync(id);
-            if (!success)
-            {
-                logger.LogWarning("Выставка с ID {Id} не найдена для удаления", id);
-                return NotFound();
-            }
+            // Идемпотентный DELETE: если объекта нет, это не ошибка
+            await service.DeleteAsync(id);
             return NoContent();
         }
         catch (Exception ex)
