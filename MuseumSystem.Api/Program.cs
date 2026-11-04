@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MuseumSystem.Contracts.Interfaces;
+using MuseumSystem.Domain.Data; // Для сидера
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
@@ -11,11 +13,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Регистрация репозиториев (Singleton для сохранения данных в памяти)
-builder.Services.AddSingleton<IExhibitionRepository, InMemoryExhibitionRepository>();
-builder.Services.AddSingleton<IVisitorRepository, InMemoryVisitorRepository>();
-builder.Services.AddSingleton<IExcursionRepository, InMemoryExcursionRepository>();
-builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();
+// Регистрация обобщенных репозиториев
+builder.Services.AddSingleton<IRepository<Exhibition>>(sp =>
+    new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions()));
+
+builder.Services.AddSingleton<IRepository<Visitor>>(sp =>
+    new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors()));
+
+builder.Services.AddSingleton<IRepository<Excursion>>(sp =>
+{
+    var exhibitionRepo = sp.GetRequiredService<IRepository<Exhibition>>();
+    var exhibitions = exhibitionRepo.GetAllAsync().Result.ToList();
+    return new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions));
+});
+
+builder.Services.AddSingleton<IRepository<Ticket>>(sp =>
+{
+    var excursionRepo = sp.GetRequiredService<IRepository<Excursion>>();
+    var visitorRepo = sp.GetRequiredService<IRepository<Visitor>>();
+    var excursions = excursionRepo.GetAllAsync().Result.ToList();
+    var visitors = visitorRepo.GetAllAsync().Result.ToList();
+    return new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions, visitors));
+});
 
 // Регистрация сервисов
 builder.Services.AddSingleton<IExhibitionService, ExhibitionService>();

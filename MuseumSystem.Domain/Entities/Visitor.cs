@@ -1,9 +1,10 @@
 ﻿namespace MuseumSystem.Domain.Entities;
+using MuseumSystem.Domain.Interfaces;
 
 /// <summary>
 /// Посетитель музея
 /// </summary>
-public class Visitor
+public class Visitor : IEntity
 {
     /// <summary>
     /// Идентификатор

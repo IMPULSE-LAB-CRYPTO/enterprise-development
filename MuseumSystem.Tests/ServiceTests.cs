@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Models;
+using MuseumSystem.Domain.Data;
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Enums;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
@@ -9,13 +11,13 @@ namespace MuseumSystem.Tests;
 public class ServiceTests
 {
 
-    // тесты для EXHIBITION SERVICE
+    // тесты для EXHIBITION
 
     [Fact]
     public async Task ExhibitionService_GetAll_ReturnsSeededData()
     {
         // Arrange
-        var repo = new InMemoryExhibitionRepository();
+        var repo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
         var service = new ExhibitionService(repo, NullLogger<ExhibitionService>.Instance);
 
         // Act
@@ -30,7 +32,7 @@ public class ServiceTests
     public async Task ExhibitionService_CreateUpdateDelete_WorksCorrectly()
     {
         // Arrange
-        var repo = new InMemoryExhibitionRepository();
+        var repo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
         var service = new ExhibitionService(repo, NullLogger<ExhibitionService>.Instance);
 
         var newExhibition = new ExhibitionCreateRequest
@@ -77,8 +79,11 @@ public class ServiceTests
     public async Task ExcursionService_GetAll_ReturnsSeededData()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+        var excursions = MuseumDataSeeder.GetExcursions(exhibitions.ToList());
+        var excursionRepo = new InMemoryRepository<Excursion>(excursions);
+
         var service = new ExcursionService(excursionRepo, exhibitionRepo, NullLogger<ExcursionService>.Instance);
 
         // Act
@@ -93,8 +98,11 @@ public class ServiceTests
     public async Task ExcursionService_CreateUpdateDelete_WorksCorrectly()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+        var excursions = MuseumDataSeeder.GetExcursions(exhibitions.ToList());
+        var excursionRepo = new InMemoryRepository<Excursion>(excursions);
+
         var service = new ExcursionService(excursionRepo, exhibitionRepo, NullLogger<ExcursionService>.Instance);
 
         var newExcursion = new ExcursionCreateRequest
@@ -136,7 +144,7 @@ public class ServiceTests
     public async Task VisitorService_GetAll_ReturnsSeededData()
     {
         // Arrange
-        var repo = new InMemoryVisitorRepository();
+        var repo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
         var service = new VisitorService(repo, NullLogger<VisitorService>.Instance);
 
         // Act
@@ -151,7 +159,7 @@ public class ServiceTests
     public async Task VisitorService_CreateUpdateDelete_WorksCorrectly()
     {
         // Arrange
-        var repo = new InMemoryVisitorRepository();
+        var repo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
         var service = new VisitorService(repo, NullLogger<VisitorService>.Instance);
 
         var newVisitor = new VisitorCreateRequest
@@ -191,10 +199,16 @@ public class ServiceTests
     public async Task TicketService_GetAll_ReturnsSeededData()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
-        var visitorRepo = new InMemoryVisitorRepository();
-        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+
+        var excursionRepo = new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions.ToList()));
+        var excursions = await excursionRepo.GetAllAsync();
+
+        var visitorRepo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
+        var visitors = await visitorRepo.GetAllAsync();
+
+        var ticketRepo = new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions.ToList(), visitors.ToList()));
 
         var service = new TicketService(ticketRepo, excursionRepo, visitorRepo, NullLogger<TicketService>.Instance);
 
@@ -210,10 +224,16 @@ public class ServiceTests
     public async Task TicketService_CreateUpdateDelete_WorksCorrectly()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
-        var visitorRepo = new InMemoryVisitorRepository();
-        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+
+        var excursionRepo = new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions.ToList()));
+        var excursions = await excursionRepo.GetAllAsync();
+
+        var visitorRepo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
+        var visitors = await visitorRepo.GetAllAsync();
+
+        var ticketRepo = new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions.ToList(), visitors.ToList()));
 
         var service = new TicketService(ticketRepo, excursionRepo, visitorRepo, NullLogger<TicketService>.Instance);
 
@@ -258,10 +278,16 @@ public class ServiceTests
     public async Task AnalyticsService_GetTop5Exhibitions_ReturnsFiveItems()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
-        var visitorRepo = new InMemoryVisitorRepository();
-        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+
+        var excursionRepo = new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions.ToList()));
+        var excursions = await excursionRepo.GetAllAsync();
+
+        var visitorRepo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
+        var visitors = await visitorRepo.GetAllAsync();
+
+        var ticketRepo = new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions.ToList(), visitors.ToList()));
 
         var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
 
@@ -278,10 +304,16 @@ public class ServiceTests
     public async Task AnalyticsService_GetThemeSummary_ReturnsDataForPeriod()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
-        var visitorRepo = new InMemoryVisitorRepository();
-        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+
+        var excursionRepo = new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions.ToList()));
+        var excursions = await excursionRepo.GetAllAsync();
+
+        var visitorRepo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
+        var visitors = await visitorRepo.GetAllAsync();
+
+        var ticketRepo = new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions.ToList(), visitors.ToList()));
 
         var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
 
@@ -301,10 +333,16 @@ public class ServiceTests
     public async Task AnalyticsService_GetVisitorsOfSelectedExcursion_ReturnsSortedByName()
     {
         // Arrange
-        var exhibitionRepo = new InMemoryExhibitionRepository();
-        var excursionRepo = new InMemoryExcursionRepository(exhibitionRepo);
-        var visitorRepo = new InMemoryVisitorRepository();
-        var ticketRepo = new InMemoryTicketRepository(excursionRepo, visitorRepo);
+        var exhibitionRepo = new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions());
+        var exhibitions = await exhibitionRepo.GetAllAsync();
+
+        var excursionRepo = new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions.ToList()));
+        var excursions = await excursionRepo.GetAllAsync();
+
+        var visitorRepo = new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors());
+        var visitors = await visitorRepo.GetAllAsync();
+
+        var ticketRepo = new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions.ToList(), visitors.ToList()));
 
         var service = new AnalyticsService(ticketRepo, excursionRepo, NullLogger<AnalyticsService>.Instance);
 

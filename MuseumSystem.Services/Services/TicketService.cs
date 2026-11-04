@@ -1,15 +1,16 @@
 using Microsoft.Extensions.Logging;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
 public class TicketService(
-    ITicketRepository repository,
-    IExcursionRepository excursionRepository,
-    IVisitorRepository visitorRepository,
+    IRepository<Ticket> repository,
+    IRepository<Excursion> excursionRepository,
+    IRepository<Visitor> visitorRepository,
     ILogger<TicketService> logger) : ITicketService
 {
     public async Task<IEnumerable<TicketResponse>> GetAllAsync()

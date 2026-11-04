@@ -1,13 +1,14 @@
 using Microsoft.Extensions.Logging;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
 public class VisitorService(
-    IVisitorRepository repository,
+    IRepository<Visitor> repository,
     ILogger<VisitorService> logger) : IVisitorService
 {
     public async Task<IEnumerable<VisitorResponse>> GetAllAsync()

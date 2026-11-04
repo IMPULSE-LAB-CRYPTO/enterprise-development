@@ -1,13 +1,14 @@
 using Microsoft.Extensions.Logging;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
 public class ExhibitionService(
-    IExhibitionRepository repository,
+    IRepository<Exhibition> repository,
     ILogger<ExhibitionService> logger) : IExhibitionService
 {
     public async Task<IEnumerable<ExhibitionResponse>> GetAllAsync()

@@ -1,14 +1,15 @@
 using Microsoft.Extensions.Logging;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Contracts.Models;
+using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Services.Mappers;
 
 namespace MuseumSystem.Services.Services;
 
 public class AnalyticsService(
-    ITicketRepository ticketRepository,
-    IExcursionRepository excursionRepository,
+    IRepository<Ticket> ticketRepository,
+    IRepository<Excursion> excursionRepository,
     ILogger<AnalyticsService> logger) : IAnalyticsService
 {
     public async Task<IEnumerable<TopExhibitionResponse>> GetTop5ExhibitionsByVisitorsAsync()

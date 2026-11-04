@@ -8,8 +8,8 @@ using MuseumSystem.Services.Mappers;
 namespace MuseumSystem.Services.Services;
 
 public class ExcursionService(
-    IExcursionRepository repository,
-    IExhibitionRepository exhibitionRepository,
+    IRepository<Excursion> repository,
+    IRepository<Exhibition> exhibitionRepository,
     ILogger<ExcursionService> logger) : IExcursionService
 {
     public async Task<IEnumerable<ExcursionResponse>> GetAllAsync()

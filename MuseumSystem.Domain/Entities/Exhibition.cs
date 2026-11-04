@@ -1,11 +1,12 @@
 ﻿using MuseumSystem.Domain.Enums;
+using MuseumSystem.Domain.Interfaces;
 
 namespace MuseumSystem.Domain.Entities;
 
 /// <summary>
 /// Выставка музея
 /// </summary>
-public class Exhibition
+public class Exhibition : IEntity
 {
     /// <summary>
     /// Идентификатор
