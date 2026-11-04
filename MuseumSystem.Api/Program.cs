@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MuseumSystem.Contracts.Interfaces;
-using MuseumSystem.Domain.Data; // Для сидера
+using MuseumSystem.Domain.Data;
 using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
-using System.Reflection;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,36 +44,46 @@ builder.Services.AddSingleton<IVisitorService, VisitorService>();
 builder.Services.AddSingleton<ITicketService, TicketService>();
 builder.Services.AddSingleton<IAnalyticsService, AnalyticsService>();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+// Настройка нативного OpenApi
+builder.Services.AddOpenApi(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Museum API", Version = "v1" });
-
-    // Читаем XML-файлы для документации
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
-
-    var contractsXmlFile = "MuseumSystem.Contracts.xml";
-    var contractsXmlPath = Path.Combine(AppContext.BaseDirectory, contractsXmlFile);
-    if (File.Exists(contractsXmlPath))
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
-        c.IncludeXmlComments(contractsXmlPath);
-    }
+        // Инициализация компонентов
+        document.Components ??= new OpenApiComponents();
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Введите JWT токен (без слова 'Bearer')",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
+        // Создаем схему безопасности Bearer
+        var bearerScheme = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Введите JWT токен (без слова 'Bearer')"
+        };
+        document.AddComponent("Bearer", bearerScheme);
 
-    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-    {
-        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        // Создаем требование безопасности через OpenApiSecuritySchemeReference
+        var securityRequirement = new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        };
+
+        // Применяем требование ко всем операциям
+        foreach (var path in document.Paths.Values)
+        {
+            // Проверка на null для устранения предупреждения CS8602
+            if (path.Operations != null)
+            {
+                foreach (var operation in path.Operations.Values)
+                {
+                    operation.Security ??= new List<OpenApiSecurityRequirement>();
+                    operation.Security.Add(securityRequirement);
+                }
+            }
+        }
+
+        return Task.CompletedTask;
     });
 });
 
@@ -101,11 +111,10 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
-//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

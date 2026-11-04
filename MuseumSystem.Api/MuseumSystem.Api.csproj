@@ -11,13 +11,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.18.7" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MuseumSystem.Services\MuseumSystem.Services.csproj" />
     <ProjectReference Include="..\MuseumSystem.Contracts\MuseumSystem.Contracts.csproj" />
     <ProjectReference Include="..\MuseumSystem.Infrastructure.InMemory\MuseumSystem.Infrastructure.InMemory.csproj" />
+    <ProjectReference Include="..\MuseumSystem.Shared\MuseumSystem.Shared.csproj" />
   </ItemGroup>
 
 </Project>
