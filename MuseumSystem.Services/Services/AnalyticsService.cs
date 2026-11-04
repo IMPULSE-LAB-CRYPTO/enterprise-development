@@ -34,15 +34,20 @@ public class AnalyticsService(
     public async Task<IEnumerable<ExcursionWithParticipantsResponse>> GetExcursionsWithMinimalParticipantsAsync()
     {
         logger.LogInformation("Запрос экскурсий с минимальным числом участников");
+        var excursions = await excursionRepository.GetAllAsync();
         var tickets = await ticketRepository.GetAllAsync();
 
-        var excursionsWithCount = tickets
-            .GroupBy(t => t.Excursion.Id)
-            .Select(g => new { Excursion = g.First().Excursion, Count = g.Count() })
-            .ToList();
-
-        if (excursionsWithCount.Count == 0)
+        if (!excursions.Any())
             return new List<ExcursionWithParticipantsResponse>();
+
+        // Проходимся по всем экскурсиям, включая и с 0 билетами
+        var excursionsWithCount = excursions
+            .Select(e => new
+            {
+                Excursion = e,
+                Count = tickets.Count(t => t.Excursion.Id == e.Id)
+            })
+            .ToList();
 
         var minCount = excursionsWithCount.Min(x => x.Count);
 
