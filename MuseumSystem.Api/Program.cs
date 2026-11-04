@@ -8,6 +8,7 @@ using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Museum API", Version = "v1" });
+
+    // Читаем XML-файлы для документации
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+
+    var contractsXmlFile = "MuseumSystem.Contracts.xml";
+    var contractsXmlPath = Path.Combine(AppContext.BaseDirectory, contractsXmlFile);
+    if (File.Exists(contractsXmlPath))
+    {
+        c.IncludeXmlComments(contractsXmlPath);
+    }
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

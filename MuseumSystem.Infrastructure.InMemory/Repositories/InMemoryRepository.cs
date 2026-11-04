@@ -2,6 +2,9 @@ using MuseumSystem.Domain.Interfaces;
 
 namespace MuseumSystem.Infrastructure.InMemory.Repositories;
 
+/// <summary>
+/// Обобщенная реализация репозитория в памяти
+/// </summary>
 public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
 {
     private readonly List<TEntity> _items;
@@ -16,7 +19,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
 
     public Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        lock (_lock) return Task.FromResult<IEnumerable<TEntity>>(_items.ToList());
+        lock (_lock) return Task.FromResult<IEnumerable<TEntity>>([.. _items]);
     }
 
     public Task<TEntity?> GetByIdAsync(int id)
