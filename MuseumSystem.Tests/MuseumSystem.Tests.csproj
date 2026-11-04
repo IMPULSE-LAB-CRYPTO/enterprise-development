@@ -18,6 +18,7 @@
 		<ProjectReference Include="..\MuseumSystem.Services\MuseumSystem.Services.csproj" />
 		<ProjectReference Include="..\MuseumSystem.Contracts\MuseumSystem.Contracts.csproj" />
 		<ProjectReference Include="..\MuseumSystem.Infrastructure.InMemory\MuseumSystem.Infrastructure.InMemory.csproj" />
+		<ProjectReference Include="..\MuseumSystem.Shared\MuseumSystem.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

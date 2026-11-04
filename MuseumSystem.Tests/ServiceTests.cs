@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using MuseumSystem.Contracts.Models;
 using MuseumSystem.Domain.Data;
 using MuseumSystem.Domain.Entities;
-using MuseumSystem.Domain.Enums;
+using MuseumSystem.Shared.Enums;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
 

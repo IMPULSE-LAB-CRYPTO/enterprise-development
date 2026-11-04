@@ -1,5 +1,5 @@
 ﻿using MuseumSystem.Domain.Entities;
-using MuseumSystem.Domain.Enums;
+using MuseumSystem.Shared.Enums;
 
 namespace MuseumSystem.Domain.Data;
 

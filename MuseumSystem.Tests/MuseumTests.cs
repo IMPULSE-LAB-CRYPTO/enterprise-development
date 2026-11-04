@@ -1,4 +1,4 @@
-﻿using MuseumSystem.Domain.Enums;
+﻿using MuseumSystem.Shared.Enums;
 
 namespace MuseumSystem.Tests;
 

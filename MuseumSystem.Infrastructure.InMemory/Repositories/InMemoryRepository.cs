@@ -1,3 +1,4 @@
+using System.Threading;
 using MuseumSystem.Domain.Interfaces;
 
 namespace MuseumSystem.Infrastructure.InMemory.Repositories;
@@ -8,7 +9,7 @@ namespace MuseumSystem.Infrastructure.InMemory.Repositories;
 public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
 {
     private readonly List<TEntity> _items;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private int _nextId;
 
     public InMemoryRepository(IEnumerable<TEntity> seedData)

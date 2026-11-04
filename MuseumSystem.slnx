@@ -9,5 +9,6 @@
   <Project Path="MuseumSystem.Domain/MuseumSystem.Domain.csproj" />
   <Project Path="MuseumSystem.Infrastructure.InMemory/MuseumSystem.Infrastructure.InMemory.csproj" />
   <Project Path="MuseumSystem.Services/MuseumSystem.Services.csproj" />
+  <Project Path="MuseumSystem.Shared/MuseumSystem.Shared.csproj" />
   <Project Path="MuseumSystem.Tests/MuseumSystem.Tests.csproj" />
 </Solution>

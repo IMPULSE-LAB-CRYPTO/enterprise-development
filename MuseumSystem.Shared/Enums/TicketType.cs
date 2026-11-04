@@ -1,8 +1,11 @@
-﻿namespace MuseumSystem.Domain.Enums;
+﻿using System.Text.Json.Serialization;
+
+namespace MuseumSystem.Shared.Enums;
 
 /// <summary>
 /// Тип билета
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TicketType
 {
     /// <summary>
