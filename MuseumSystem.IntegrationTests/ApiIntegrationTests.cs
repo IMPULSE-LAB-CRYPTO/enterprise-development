@@ -1,49 +1,36 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Aspire.Hosting.Testing;
 using MuseumSystem.Contracts.Models;
 using Xunit;
 
 namespace MuseumSystem.IntegrationTests;
 
-public class ApiIntegrationTests
+public class ApiIntegrationTests(AppHostFixture fixture) : IClassFixture<AppHostFixture>
 {
     [Fact]
     public async Task Exhibitions_Endpoint_ReturnsSuccess_And_Seeded_Data()
     {
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.MuseumSystem_AppHost>();
+        var ct = TestContext.Current.CancellationToken;
 
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
-
-        await app.ResourceNotifications.WaitForResourceHealthyAsync("museum-api");
-
-        using var httpClient = app.CreateHttpClient("museum-api");
-
-        // Сначала логинимся, чтобы получить токен
-        var loginRequest = new LoginRequest
-        {
-            Username = "admin",
-            Password = "password"
-        };
-        var loginResponse = await httpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
+        // Логинимся
+        var loginRequest = new LoginRequest { Username = "admin", Password = "password" };
+        var loginResponse = await fixture.HttpClient.PostAsJsonAsync("/api/auth/login", loginRequest, ct);
         loginResponse.EnsureSuccessStatusCode();
 
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>(ct);
         Assert.NotNull(loginData);
 
-        // Устанавливаем токен в заголовок Authorization
-        httpClient.DefaultRequestHeaders.Authorization = 
+        // Ставим токен
+        fixture.HttpClient.DefaultRequestHeaders.Authorization = 
             new AuthenticationHeaderValue("Bearer", loginData.Token);
 
-        // Делаем запрос к защищенному эндпоинту
-        using var response = await httpClient.GetAsync("/api/exhibitions");
+        // Идем за выставками
+        using var response = await fixture.HttpClient.GetAsync("/api/exhibitions", ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var exhibitions = await response.Content.ReadFromJsonAsync<List<ExhibitionResponse>>();
+        var exhibitions = await response.Content.ReadFromJsonAsync<List<ExhibitionResponse>>(ct);
         Assert.NotNull(exhibitions);
         Assert.NotEmpty(exhibitions); 
     }
@@ -51,26 +38,14 @@ public class ApiIntegrationTests
     [Fact]
     public async Task Auth_Login_With_Valid_Credentials_Returns_Token()
     {
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.MuseumSystem_AppHost>();
+        var ct = TestContext.Current.CancellationToken;
 
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
-
-        await app.ResourceNotifications.WaitForResourceHealthyAsync("museum-api");
-
-        using var httpClient = app.CreateHttpClient("museum-api");
-        var loginRequest = new LoginRequest
-        {
-            Username = "admin",
-            Password = "password"
-        };
-
-        using var response = await httpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
+        var loginRequest = new LoginRequest { Username = "admin", Password = "password" };
+        using var response = await fixture.HttpClient.PostAsJsonAsync("/api/auth/login", loginRequest, ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(ct);
         Assert.NotNull(loginResponse);
         Assert.False(string.IsNullOrWhiteSpace(loginResponse.Token));
     }
