@@ -11,43 +11,61 @@ using MuseumSystem.Services.Services;
 using Scalar.AspNetCore;
 using MuseumSystem.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using MuseumSystem.Infrastructure.EfCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
 // Временная строка подключения
-var connectionString = builder.Configuration.GetConnectionString("museumdb")
-    ?? "Host=localhost;Database=museumdb;Username=postgres;Password=postgres";
+//var connectionString = builder.Configuration.GetConnectionString("museumdb")
+//    ?? "Host=localhost;Database=museumdb;Username=postgres;Password=postgres";
 
-builder.Services.AddDbContext<MuseumDbContext>(options =>
-    options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention());
+//builder.Services.AddDbContext<MuseumDbContext>(options =>
+//    options.UseNpgsql(connectionString)
+//           .UseSnakeCaseNamingConvention());
+
+builder.AddNpgsqlDbContext<MuseumDbContext>("museumdb",
+    configureDbContextOptions: options =>
+    {
+        options.UseSnakeCaseNamingConvention();
+    });
 
 builder.Services.AddControllers();
 
-// Регистрация обобщенных репозиториев
-builder.Services.AddSingleton<IRepository<Exhibition>>(sp =>
-    new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions()));
+// Регистрация репозиториев в зависимости от конфигурации
+var useInMemory = builder.Configuration.GetValue<bool>("UseInMemoryStorage");
 
-builder.Services.AddSingleton<IRepository<Visitor>>(sp =>
-    new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors()));
-
-builder.Services.AddSingleton<IRepository<Excursion>>(sp =>
+if (useInMemory)
 {
-    var exhibitionRepo = sp.GetRequiredService<IRepository<Exhibition>>();
-    var exhibitions = exhibitionRepo.GetAllAsync().Result.ToList();
-    return new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions));
-});
+    // In-memory реализация
+    builder.Services.AddSingleton<IRepository<Exhibition>>(sp =>
+        new InMemoryRepository<Exhibition>(MuseumDataSeeder.GetExhibitions()));
 
-builder.Services.AddSingleton<IRepository<Ticket>>(sp =>
+    builder.Services.AddSingleton<IRepository<Visitor>>(sp =>
+        new InMemoryRepository<Visitor>(MuseumDataSeeder.GetVisitors()));
+
+    builder.Services.AddSingleton<IRepository<Excursion>>(sp =>
+    {
+        var exhibitionRepo = sp.GetRequiredService<IRepository<Exhibition>>();
+        var exhibitions = exhibitionRepo.GetAllAsync().Result.ToList();
+        return new InMemoryRepository<Excursion>(MuseumDataSeeder.GetExcursions(exhibitions));
+    });
+
+    builder.Services.AddSingleton<IRepository<Ticket>>(sp =>
+    {
+        var excursionRepo = sp.GetRequiredService<IRepository<Excursion>>();
+        var visitorRepo = sp.GetRequiredService<IRepository<Visitor>>();
+        var excursions = excursionRepo.GetAllAsync().Result.ToList();
+        var visitors = visitorRepo.GetAllAsync().Result.ToList();
+        return new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions, visitors));
+    });
+}
+else
 {
-    var excursionRepo = sp.GetRequiredService<IRepository<Excursion>>();
-    var visitorRepo = sp.GetRequiredService<IRepository<Visitor>>();
-    var excursions = excursionRepo.GetAllAsync().Result.ToList();
-    var visitors = visitorRepo.GetAllAsync().Result.ToList();
-    return new InMemoryRepository<Ticket>(MuseumDataSeeder.GetTickets(excursions, visitors));
-});
+    // EF Core реализация
+    builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+}
 
 // Регистрация сервисов
 builder.Services.AddSingleton<IExhibitionService, ExhibitionService>();

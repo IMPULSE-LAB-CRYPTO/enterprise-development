@@ -1,5 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var api = builder.AddProject<Projects.MuseumSystem_Api>("museum-api");
+var postgres = builder.AddPostgres("postgres");
+var museumDb = postgres.AddDatabase("museumdb");
+
+var api = builder.AddProject<Projects.MuseumSystem_Api>("museum-api")
+    .WithReference(museumDb);
 
 builder.Build().Run();

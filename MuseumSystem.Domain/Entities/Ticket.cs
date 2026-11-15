@@ -14,9 +14,19 @@ public class Ticket : IEntity
     public int Id { get; set; }
 
     /// <summary>
+    /// Внешний ключ на экскурсию (для БД и сидинга)
+    /// </summary>
+    public int ExcursionId { get; set; }
+
+    /// <summary>
     /// Экскурсия, на которую куплен билет
     /// </summary>
     public required Excursion Excursion { get; set; }
+
+    /// <summary>
+    /// Внешний ключ на посетителя (для БД и сидинга)
+    /// </summary>
+    public int VisitorId { get; set; }
 
     /// <summary>
     /// Посетитель, купивший билет
