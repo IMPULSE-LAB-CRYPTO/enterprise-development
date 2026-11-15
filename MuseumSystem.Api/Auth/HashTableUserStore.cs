@@ -16,6 +16,8 @@ public class HashTableUserStore
     {
         // Сидинг тестового пользователя
         Register("admin", "password");
+        Register("manager", "password2");
+        Register("visitor", "password3");
     }
 
     public void Register(string username, string password)
