@@ -145,11 +145,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 // Автоматическое применение миграций при запуске
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<MuseumDbContext>();
-    dbContext.Database.Migrate();
-}
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<MuseumDbContext>();
+        dbContext.Database.Migrate();
+    }
+} 
 
 app.MapDefaultEndpoints();
 
