@@ -61,4 +61,39 @@ public class AuthController(
             return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
         }
     }
+
+    /// <summary>
+    /// Регистрация нового пользователя
+    /// </summary>
+    [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult Register([FromBody] RegisterRequest request)
+    {
+        try
+        {
+            // Валидация (базовая защита)
+            if (string.IsNullOrWhiteSpace(request.Username) || request.Username.Length < 3)
+                return BadRequest("Логин должен содержать минимум 3 символа.");
+
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+                return BadRequest("Пароль должен содержать минимум 6 символов.");
+
+            // Попытка регистрации (защита от дубликатов)
+            if (!userStore.TryRegister(request.Username, request.Password))
+            {
+                logger.LogWarning("Попытка регистрации с существующим логином: {Username}", request.Username);
+                return Conflict("Пользователь с таким логином уже существует.");
+            }
+
+            logger.LogInformation("Успешная регистрация нового пользователя: {Username}", request.Username);
+            return Ok(new { Message = "Пользователь успешно зарегистрирован." });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ошибка при регистрации пользователя {Username}", request.Username);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Внутренняя ошибка сервера");
+        }
+    }
 }

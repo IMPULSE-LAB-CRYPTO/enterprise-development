@@ -26,6 +26,13 @@ public class HashTableUserStore
         _users[username] = hash;
     }
 
+    public bool TryRegister(string username, string password)
+    {
+        var hash = HashPassword(password);
+        // Вернет false, если пользователь с таким логином уже ест
+        return _users.TryAdd(username, hash);
+    }
+
     public bool Validate(string username, string password)
     {
         if (!_users.TryGetValue(username, out var storedHash))
