@@ -6,8 +6,8 @@
 
 **Вариант 20:**
 *   **Доменная область:** Музей
-*   **База данных:** PostgreSQL
-*   **Брокер сообщений:** RabbitMQ
+*   **База данных:** PostgreSQL (Лаб. 3)
+*   **Брокер сообщений:** RabbitMQ (Лаб. 4)
 
 ### Предметная область
 
@@ -17,43 +17,71 @@
 *   **Посетитель** характеризуется ФИО, телефоном, датой рождения.
 *   **Билет** содержит информацию об экскурсии и посетителе, тип билета и цену.
 
+---
+
+## Что реализовано в Лабораторной №3 (ORM и Оркестрация)
+
+1. **Переход на PostgreSQL:** Хранение данных переведено с in-memory коллекций на реляционную БД (Entity Framework Core + Npgsql). При этом архитектура сохранена: интерфейс `IRepository<TEntity>` имеет две реализации (`InMemoryRepository` и `EfRepository`), переключение между которыми настраивается через `appsettings.json` (`UseInMemoryStorage`).
+2. **Миграции и Сидинг:** Настроено соглашение об именовании `snake_case` для таблиц и колонок. Созданы миграции для генерации схемы БД и первоначального заполнения данными (`HasData`), включая связи «многие-ко-многим» через сущность `ExcursionExhibition`.
+3. **Оркестратор .NET Aspire:** Добавлены проекты `AppHost` и `ServiceDefaults`. Aspire автоматически запускает PostgreSQL в Docker, передает строку подключения в API и ожидает полной готовности БД перед стартом сервера (`.WaitFor()`).
+4. **Аутентификация через хэш-таблицу (Факультатив):** Реализовано потокобезопасное хранилище пользователей (`HashTableUserStore`), где пароли хранятся в виде SHA-256 хэшей. JWT-аутентификация теперь использует эту хэш-таблицу для валидации.
+5. **Интеграционные тесты (Факультатив):** Создан проект `MuseumSystem.IntegrationTests` (xUnit v3). Тесты с использованием `Aspire.Hosting.Testing` поднимают оркестратор, запускают Docker, применяют миграции и проверяют HTTP-эндпоинты (включая авторизацию).
+
+---
+
 ## Структура решения
 
 *   **MuseumSystem.Shared** — общие перечисления (Enums), используемые в Domain и Contracts.
-*   **MuseumSystem.Domain** — сущности, датасидер, интерфейсы репозиториев.
+*   **MuseumSystem.Domain** — сущности, датасидер, интерфейсы репозиториев (`IRepository<TEntity>`).
 *   **MuseumSystem.Contracts** — DTO-модели для запросов/ответов и интерфейсы сервисов.
 *   **MuseumSystem.Services** — бизнес-логика, мапперы.
 *   **MuseumSystem.Infrastructure.InMemory** — реализация обобщенного репозитория для хранения данных в памяти.
-*   **MuseumSystem.Api** — ASP.NET Core Web API (контроллеры, DI, Scalar UI, JWT).
+*   **MuseumSystem.Infrastructure.EfCore** — реализация репозитория на базе Entity Framework Core.
+*   **MuseumSystem.Api** — ASP.NET Core Web API (контроллеры, DI, Scalar UI, JWT, `MuseumDbContext`).
+*   **MuseumSystem.AppHost** — оркестратор .NET Aspire.
+*   **MuseumSystem.ServiceDefaults** — общие настройки телеметрии и health-check для Aspire.
 *   **MuseumSystem.Tests** — unit-тесты (xUnit v3).
+*   **MuseumSystem.IntegrationTests** — интеграционные тесты с Aspire (xUnit v3).
+
+---
 
 ## Запуск проекта
 
+Для запуска требуется **Docker Desktop** (для поднятия контейнера PostgreSQL через Aspire).
+
+**1. Запуск всей системы через оркестратор:**
 ```bash
-# Сборка решения
-dotnet build MuseumSystem.slnx
+dotnet run --project MuseumSystem.AppHost
 ```
 
+После запуска откройте дашборд Aspire (ссылка появится в консоли)
+и перейдите по ссылке на museum-api, чтобы открыть Scalar UI.
+
+**2. Запуск Unit-тестов:**
 ```bash
-# Запуск тестов
-dotnet test MuseumSystem.slnx
+dotnet test MuseumSystem.Tests
 ```
 
+**3. Запуск Интеграционных тестов:**
 ```bash
-# Запуск API
-dotnet run --project MuseumSystem.Api
+cd MuseumSystem.IntegrationTests
+dotnet run
 ```
 
 ## Документация API
 
-Для документации используется нативный `Microsoft.AspNetCore.OpenApi` и современный интерфейс **Scalar**.
-После запуска приложения перейдите по адресу: `http://localhost:5099/scalar/v1` *(порт может отличаться, проверьте консоль)*.
+Для документации используется нативный Microsoft.AspNetCore.OpenApi
+и современный интерфейс Scalar.
+После запуска через Aspire, перейдите по ссылке на museum-api в дашборде
+(https://localhost:XXXX/scalar/v1).
 
 ## Аутентификация (Факультатив)
-
 Реализована JWT-аутентификация.
 *   **Эндпоинт для получения токена:** `POST /api/auth/login`
-*   **Тестовые данные:** логин `admin`, пароль `password`.
+*	**Тестовые данные:**
+	- Логин: admin, Пароль: password
+	- Логин: manager, Пароль: password2
+	- Логин: visitor, Пароль: password3
 *   В интерфейсе Scalar нажмите кнопку **Authorize** (замок) и вставьте полученный токен.
 
 ## Основные эндпоинты
