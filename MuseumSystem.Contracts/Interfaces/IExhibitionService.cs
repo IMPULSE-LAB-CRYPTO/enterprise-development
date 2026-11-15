@@ -10,25 +10,25 @@ public interface IExhibitionService
     /// <summary>
     /// Получить список всех выставок
     /// </summary>
-    Task<IEnumerable<ExhibitionResponse>> GetAllAsync();
+    public Task<IEnumerable<ExhibitionResponse>> GetAllAsync();
 
     /// <summary>
     /// Получить выставку по её идентификатору
     /// </summary>
-    Task<ExhibitionResponse?> GetByIdAsync(int id);
+    public Task<ExhibitionResponse?> GetByIdAsync(int id);
 
     /// <summary>
     /// Создать новую выставку
     /// </summary>
-    Task<ExhibitionResponse> CreateAsync(ExhibitionCreateRequest request);
+    public Task<ExhibitionResponse> CreateAsync(ExhibitionCreateRequest request);
 
     /// <summary>
     /// Обновить данные существующей выставки
     /// </summary>
-    Task<bool> UpdateAsync(int id, ExhibitionUpdateRequest request);
+    public Task<bool> UpdateAsync(int id, ExhibitionUpdateRequest request);
 
     /// <summary>
     /// Удалить выставку
     /// </summary>
-    Task<bool> DeleteAsync(int id);
+    public Task<bool> DeleteAsync(int id);
 }

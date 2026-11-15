@@ -8,5 +8,5 @@ public interface IEntity
     /// <summary>
     /// Уникальный идентификатор сущности
     /// </summary>
-    int Id { get; set; }
+    public int Id { get; set; }
 }
