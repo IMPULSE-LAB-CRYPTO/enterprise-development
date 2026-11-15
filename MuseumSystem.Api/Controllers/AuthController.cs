@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MuseumSystem.Api.Auth;
 using MuseumSystem.Contracts.Models;
 
 namespace MuseumSystem.Api.Controllers;
@@ -14,7 +15,8 @@ namespace MuseumSystem.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController(
     IConfiguration configuration,
-    ILogger<AuthController> logger) : ControllerBase
+    ILogger<AuthController> logger,
+    HashTableUserStore userStore) : ControllerBase
 {
     /// <summary>
     /// Авторизация и получение JWT токена
@@ -26,8 +28,8 @@ public class AuthController(
     {
         try
         {
-            // Для теста используем жестко заданного пользователя
-            if (request.Username != "admin" || request.Password != "password")
+            // Проверка через хэш-таблицу
+            if (!userStore.Validate(request.Username, request.Password))
             {
                 logger.LogWarning("Неудачная попытка входа для пользователя {Username}", request.Username);
                 return Unauthorized("Неверный логин или пароль");
@@ -40,7 +42,6 @@ public class AuthController(
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(secretKey);
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, request.Username) }),
@@ -49,10 +50,9 @@ public class AuthController(
                 Audience = audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            logger.LogInformation("Пользователь {Username} успешно авторизован", request.Username);
 
+            logger.LogInformation("Пользователь {Username} успешно авторизован", request.Username);
             return Ok(new LoginResponse { Token = tokenHandler.WriteToken(token) });
         }
         catch (Exception ex)

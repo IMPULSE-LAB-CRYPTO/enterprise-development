@@ -12,6 +12,7 @@ using Scalar.AspNetCore;
 using MuseumSystem.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using MuseumSystem.Infrastructure.EfCore;
+using MuseumSystem.Api.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ builder.AddNpgsqlDbContext<MuseumDbContext>("museumdb",
     });
 
 builder.Services.AddControllers();
+
+builder.Services.AddSingleton<HashTableUserStore>();
 
 // Регистрация репозиториев в зависимости от конфигурации
 var useInMemory = builder.Configuration.GetValue<bool>("UseInMemoryStorage");
