@@ -52,8 +52,12 @@ public static class SeedData
 	{
 		get
 		{
+			// Получаем экскурсии с ещё не очищенными Exhibitions
+			var exhibitions = Exhibitions.ToDictionary(e => e.Id);
+			var rawExcursions = MuseumDataSeeder.GetExcursions(exhibitions.Values.ToList());
+
 			var result = new List<ExcursionExhibition>();
-			foreach (var excursion in Excursions)
+			foreach (var excursion in rawExcursions)
 			{
 				foreach (var exhibition in excursion.Exhibitions)
 				{

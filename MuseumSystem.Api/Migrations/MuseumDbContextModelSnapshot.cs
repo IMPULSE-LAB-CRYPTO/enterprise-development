@@ -136,6 +136,88 @@ namespace MuseumSystem.Api.Migrations
                         .HasDatabaseName("ix_excursion_exhibitions_exhibition_id");
 
                     b.ToTable("excursion_exhibitions", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ExcursionId = 1,
+                            ExhibitionId = 1
+                        },
+                        new
+                        {
+                            ExcursionId = 1,
+                            ExhibitionId = 6
+                        },
+                        new
+                        {
+                            ExcursionId = 2,
+                            ExhibitionId = 2
+                        },
+                        new
+                        {
+                            ExcursionId = 2,
+                            ExhibitionId = 7
+                        },
+                        new
+                        {
+                            ExcursionId = 3,
+                            ExhibitionId = 3
+                        },
+                        new
+                        {
+                            ExcursionId = 3,
+                            ExhibitionId = 8
+                        },
+                        new
+                        {
+                            ExcursionId = 4,
+                            ExhibitionId = 4
+                        },
+                        new
+                        {
+                            ExcursionId = 5,
+                            ExhibitionId = 5
+                        },
+                        new
+                        {
+                            ExcursionId = 5,
+                            ExhibitionId = 10
+                        },
+                        new
+                        {
+                            ExcursionId = 6,
+                            ExhibitionId = 12
+                        },
+                        new
+                        {
+                            ExcursionId = 7,
+                            ExhibitionId = 11
+                        },
+                        new
+                        {
+                            ExcursionId = 8,
+                            ExhibitionId = 8
+                        },
+                        new
+                        {
+                            ExcursionId = 9,
+                            ExhibitionId = 9
+                        },
+                        new
+                        {
+                            ExcursionId = 10,
+                            ExhibitionId = 10
+                        },
+                        new
+                        {
+                            ExcursionId = 11,
+                            ExhibitionId = 1
+                        },
+                        new
+                        {
+                            ExcursionId = 12,
+                            ExhibitionId = 7
+                        });
                 });
 
             modelBuilder.Entity("MuseumSystem.Domain.Entities.Exhibition", b =>

@@ -56,10 +56,7 @@ public class MuseumDbContext(DbContextOptions<MuseumDbContext> options) : DbCont
         // Excursion + Настройка связи много-много
         modelBuilder.Entity<Excursion>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.StartsAt).IsRequired();
-            entity.Property(e => e.DurationMinutes).IsRequired();
-
+            // ...
             entity.HasMany(e => e.Exhibitions)
                   .WithMany()
                   .UsingEntity<ExcursionExhibition>(
@@ -68,17 +65,14 @@ public class MuseumDbContext(DbContextOptions<MuseumDbContext> options) : DbCont
                       j =>
                       {
                           j.HasKey(ee => new { ee.ExcursionId, ee.ExhibitionId });
-                          //Сидинг промежуточной таблицы
-                          j.HasData(SeedData.ExcursionExhibitions);
-                      }
-                  );
+                          j.HasData(SeedData.ExcursionExhibitions); // Единственное место, где мы сидим связи!
+                      });
         });
 
-        // Сидинг
+        // Сидинг основных таблиц
         modelBuilder.Entity<Exhibition>().HasData(SeedData.Exhibitions);
         modelBuilder.Entity<Visitor>().HasData(SeedData.Visitors);
         modelBuilder.Entity<Excursion>().HasData(SeedData.Excursions);
         modelBuilder.Entity<Ticket>().HasData(SeedData.Tickets);
-        modelBuilder.Entity<ExcursionExhibition>().HasData(SeedData.ExcursionExhibitions);
     }
 }

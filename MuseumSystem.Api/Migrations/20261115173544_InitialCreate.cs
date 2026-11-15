@@ -170,6 +170,29 @@ namespace MuseumSystem.Api.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "excursion_exhibitions",
+                columns: new[] { "excursion_id", "exhibition_id" },
+                values: new object[,]
+                {
+                    { 1, 1 },
+                    { 1, 6 },
+                    { 2, 2 },
+                    { 2, 7 },
+                    { 3, 3 },
+                    { 3, 8 },
+                    { 4, 4 },
+                    { 5, 5 },
+                    { 5, 10 },
+                    { 6, 12 },
+                    { 7, 11 },
+                    { 8, 8 },
+                    { 9, 9 },
+                    { 10, 10 },
+                    { 11, 1 },
+                    { 12, 7 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "tickets",
                 columns: new[] { "id", "excursion_id", "price", "type", "visitor_id" },
                 values: new object[,]
