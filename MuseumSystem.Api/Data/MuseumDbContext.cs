@@ -56,7 +56,11 @@ public class MuseumDbContext(DbContextOptions<MuseumDbContext> options) : DbCont
         // Excursion + Настройка связи много-много
         modelBuilder.Entity<Excursion>(entity =>
         {
-            // ...
+            entity.HasKey(e => e.Id);
+            // время БЕЗ часового пояса для Постгре
+            entity.Property(e => e.StartsAt).IsRequired().HasColumnType("timestamp without time zone");
+            entity.Property(e => e.DurationMinutes).IsRequired();
+
             entity.HasMany(e => e.Exhibitions)
                   .WithMany()
                   .UsingEntity<ExcursionExhibition>(
@@ -65,7 +69,7 @@ public class MuseumDbContext(DbContextOptions<MuseumDbContext> options) : DbCont
                       j =>
                       {
                           j.HasKey(ee => new { ee.ExcursionId, ee.ExhibitionId });
-                          j.HasData(SeedData.ExcursionExhibitions); // Единственное место, где мы сидим связи!
+                          j.HasData(SeedData.ExcursionExhibitions);
                       });
         });
 

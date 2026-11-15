@@ -20,7 +20,7 @@ namespace MuseumSystem.Api.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    starts_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    starts_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     duration_minutes = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MuseumSystem.Api.Migrations
 {
     [DbContext(typeof(MuseumDbContext))]
-    [Migration("20261115173544_InitialCreate")]
+    [Migration("20261115180253_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -39,7 +39,7 @@ namespace MuseumSystem.Api.Migrations
                         .HasColumnName("duration_minutes");
 
                     b.Property<DateTime>("StartsAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("starts_at");
 
                     b.HasKey("Id")

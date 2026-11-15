@@ -36,7 +36,7 @@ namespace MuseumSystem.Api.Migrations
                         .HasColumnName("duration_minutes");
 
                     b.Property<DateTime>("StartsAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("starts_at");
 
                     b.HasKey("Id")

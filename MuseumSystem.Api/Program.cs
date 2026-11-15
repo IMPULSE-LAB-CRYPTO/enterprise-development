@@ -64,15 +64,17 @@ if (useInMemory)
 else
 {
     // EF Core реализация
+    builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<MuseumDbContext>());
+
     builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 }
 
 // Регистрация сервисов
-builder.Services.AddSingleton<IExhibitionService, ExhibitionService>();
-builder.Services.AddSingleton<IExcursionService, ExcursionService>();
-builder.Services.AddSingleton<IVisitorService, VisitorService>();
-builder.Services.AddSingleton<ITicketService, TicketService>();
-builder.Services.AddSingleton<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IExhibitionService, ExhibitionService>();
+builder.Services.AddScoped<IExcursionService, ExcursionService>();
+builder.Services.AddScoped<IVisitorService, VisitorService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 // Настройка нативного OpenApi
 builder.Services.AddOpenApi(options =>
@@ -138,6 +140,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+
+// Автоматическое применение миграций при запуске
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MuseumDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.MapDefaultEndpoints();
 
