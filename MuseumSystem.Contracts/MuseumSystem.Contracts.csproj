@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\MuseumSystem.Domain\MuseumSystem.Domain.csproj" />
     <ProjectReference Include="..\MuseumSystem.Shared\MuseumSystem.Shared.csproj" />
   </ItemGroup>
 
