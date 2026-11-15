@@ -9,10 +9,20 @@ using MuseumSystem.Domain.Interfaces;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
 using Scalar.AspNetCore;
+using MuseumSystem.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// Временная строка подключения
+var connectionString = builder.Configuration.GetConnectionString("museumdb")
+    ?? "Host=localhost;Database=museumdb;Username=postgres;Password=postgres";
+
+builder.Services.AddDbContext<MuseumDbContext>(options =>
+    options.UseNpgsql(connectionString)
+           .UseSnakeCaseNamingConvention());
 
 builder.Services.AddControllers();
 
