@@ -12,12 +12,16 @@ public class HashTableUserStore
 {
     private readonly ConcurrentDictionary<string, string> _users = new();
 
-    public HashTableUserStore()
+    public HashTableUserStore(IConfiguration configuration)
     {
-        // Сидинг тестового пользователя
-        Register("admin", "password");
-        Register("manager", "password2");
-        Register("visitor", "password3");
+        var testUsers = configuration.GetSection("TestUsers").Get<List<TestUser>>();
+        if (testUsers != null)
+        {
+            foreach (var user in testUsers)
+            {
+                Register(user.Username, user.Password);
+            }
+        }
     }
 
     public void Register(string username, string password)
@@ -46,4 +50,10 @@ public class HashTableUserStore
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
         return Convert.ToBase64String(bytes);
     }
+}
+
+public class TestUser
+{
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 }
