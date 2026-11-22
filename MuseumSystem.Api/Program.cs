@@ -19,14 +19,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Временная строка подключения
-//var connectionString = builder.Configuration.GetConnectionString("museumdb")
-//    ?? "Host=localhost;Database=museumdb;Username=postgres;Password=postgres";
-
-//builder.Services.AddDbContext<MuseumDbContext>(options =>
-//    options.UseNpgsql(connectionString)
-//           .UseSnakeCaseNamingConvention());
-
 builder.AddNpgsqlDbContext<MuseumDbContext>("museumdb",
     configureDbContextOptions: options =>
     {
@@ -148,12 +140,10 @@ var app = builder.Build();
 // Автоматическое применение миграций при запуске
 if (app.Environment.IsDevelopment())
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<MuseumDbContext>();
-        dbContext.Database.Migrate();
-    }
-} 
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<MuseumDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.MapDefaultEndpoints();
 
