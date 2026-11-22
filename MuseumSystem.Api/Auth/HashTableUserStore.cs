@@ -51,9 +51,3 @@ public class HashTableUserStore
         return Convert.ToBase64String(bytes);
     }
 }
-
-public class TestUser
-{
-    public string Username { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
