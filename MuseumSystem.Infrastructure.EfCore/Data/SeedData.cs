@@ -1,7 +1,7 @@
 using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Data;
 
-namespace MuseumSystem.Api.Data;
+namespace MuseumSystem.Infrastructure.EfCore.Data;
 
 public static class SeedData
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace MuseumSystem.Api.Data;
+namespace MuseumSystem.Infrastructure.EfCore.Data;
 
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<MuseumDbContext>
 {

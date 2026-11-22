@@ -1,18 +1,19 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using MuseumSystem.Api.Auth;
 using MuseumSystem.Contracts.Interfaces;
 using MuseumSystem.Domain.Data;
 using MuseumSystem.Domain.Entities;
 using MuseumSystem.Domain.Interfaces;
+using MuseumSystem.Infrastructure.EfCore;
+using MuseumSystem.Infrastructure.EfCore.Data;
 using MuseumSystem.Infrastructure.InMemory.Repositories;
 using MuseumSystem.Services.Services;
 using Scalar.AspNetCore;
-using MuseumSystem.Api.Data;
-using Microsoft.EntityFrameworkCore;
-using MuseumSystem.Infrastructure.EfCore;
-using MuseumSystem.Api.Auth;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

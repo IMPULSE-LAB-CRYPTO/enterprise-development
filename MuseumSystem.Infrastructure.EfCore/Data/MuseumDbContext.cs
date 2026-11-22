@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MuseumSystem.Domain.Entities;
 
-namespace MuseumSystem.Api.Data;
+namespace MuseumSystem.Infrastructure.EfCore.Data;
 
 public class MuseumDbContext(DbContextOptions<MuseumDbContext> options) : DbContext(options)
 {
