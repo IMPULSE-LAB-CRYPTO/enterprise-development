@@ -24,7 +24,13 @@ public class AppHostFixture : IAsyncLifetime
             TestContext.Current.CancellationToken);
 
         // Создаем HttpClient
-        HttpClient = _app.CreateHttpClient("museum-api");
+        HttpClient = _app.CreateHttpClient("museum-api", clientBuilder =>
+        {
+            clientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+            });
+        });
     }
 
     public async ValueTask DisposeAsync()
