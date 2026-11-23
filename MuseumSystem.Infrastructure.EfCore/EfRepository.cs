@@ -8,8 +8,18 @@ public class EfRepository<TEntity>(DbContext context) : IRepository<TEntity>
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync()
-        => await _dbSet.AsNoTracking().ToListAsync();
+    public async Task<IEnumerable<TEntity>> GetAllAsync(params string[] includes)
+    {
+        IQueryable<TEntity> query = _dbSet.AsNoTracking();
+
+        // Подгружаем связанные сущности, при их передаче
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.ToListAsync();
+    }
 
     public async Task<TEntity?> GetByIdAsync(int id)
         => await _dbSet.FindAsync(id);

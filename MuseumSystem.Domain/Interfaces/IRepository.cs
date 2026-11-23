@@ -10,7 +10,7 @@ public interface IRepository<TEntity> where TEntity : class, IEntity
     /// Получить список всех сущностей
     /// </summary>
     /// <returns>Коллекция сущностей</returns>
-    public Task<IEnumerable<TEntity>> GetAllAsync();
+    public Task<IEnumerable<TEntity>> GetAllAsync(params string[] includes);
 
     /// <summary>
     /// Получить сущность по её идентификатору

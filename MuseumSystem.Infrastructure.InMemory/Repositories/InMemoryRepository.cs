@@ -17,7 +17,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
         _nextId = _items.Count > 0 ? _items.Max(e => e.Id) + 1 : 1;
     }
 
-    public Task<IEnumerable<TEntity>> GetAllAsync()
+    public Task<IEnumerable<TEntity>> GetAllAsync(params string[] includes)
     {
         lock (_lock) return Task.FromResult<IEnumerable<TEntity>>([.. _items]);
     }

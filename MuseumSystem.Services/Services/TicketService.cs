@@ -15,8 +15,8 @@ public class TicketService(
 {
     public async Task<IEnumerable<TicketResponse>> GetAllAsync()
     {
-        var entities = await repository.GetAllAsync();
-        return entities.Select(t => t.ToDto());
+        var tickets = await repository.GetAllAsync(nameof(Ticket.Visitor), nameof(Ticket.Excursion));
+        return tickets.Select(TicketMapper.ToDto);
     }
 
     public async Task<TicketResponse?> GetByIdAsync(int id)

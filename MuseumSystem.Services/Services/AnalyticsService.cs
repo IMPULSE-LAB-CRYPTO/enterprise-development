@@ -15,7 +15,12 @@ public class AnalyticsService(
     public async Task<IEnumerable<TopExhibitionResponse>> GetTop5ExhibitionsByVisitorsAsync()
     {
         logger.LogInformation("Запрос топ-5 выставок по посетителям");
-        var tickets = await ticketRepository.GetAllAsync();
+
+        var tickets = await ticketRepository.GetAllAsync(
+            nameof(Ticket.Excursion),
+            "Excursion.Exhibitions",
+            nameof(Ticket.Visitor)
+        );
 
         return tickets
             .SelectMany(t => t.Excursion.Exhibitions)
@@ -34,13 +39,15 @@ public class AnalyticsService(
     public async Task<IEnumerable<ExcursionWithParticipantsResponse>> GetExcursionsWithMinimalParticipantsAsync()
     {
         logger.LogInformation("Запрос экскурсий с минимальным числом участников");
+
         var excursions = await excursionRepository.GetAllAsync();
-        var tickets = await ticketRepository.GetAllAsync();
+
+        // Excursion внутри Ticket, чтобы сравнить ID
+        var tickets = await ticketRepository.GetAllAsync(nameof(Ticket.Excursion));
 
         if (!excursions.Any())
             return new List<ExcursionWithParticipantsResponse>();
 
-        // Проходимся по всем экскурсиям, включая и с 0 билетами
         var excursionsWithCount = excursions
             .Select(e => new
             {
@@ -65,7 +72,12 @@ public class AnalyticsService(
     public async Task<IEnumerable<ThemeSummaryResponse>> GetThemeSummaryForPeriodAsync(DateTime from, DateTime to)
     {
         logger.LogInformation("Запрос сводки по тематикам за период с {From} по {To}", from, to);
-        var tickets = await ticketRepository.GetAllAsync();
+
+        var tickets = await ticketRepository.GetAllAsync(
+            nameof(Ticket.Excursion),
+            "Excursion.Exhibitions",
+            nameof(Ticket.Visitor)
+        );
 
         return tickets
             .Where(t => t.Excursion.StartsAt >= from && t.Excursion.StartsAt <= to)
@@ -90,7 +102,9 @@ public class AnalyticsService(
     public async Task<IEnumerable<ExcursionInHallResponse>> GetExcursionsInHallForPeriodAsync(int hallNumber, DateTime from, DateTime to)
     {
         logger.LogInformation("Запрос экскурсий в зале {HallNumber} за период", hallNumber);
-        var excursions = await excursionRepository.GetAllAsync();
+
+        // Загружаем выставки для экскурсий, чтобы проверить HallNumber
+        var excursions = await excursionRepository.GetAllAsync(nameof(Excursion.Exhibitions));
 
         return excursions
             .Where(e => e.Exhibitions.Any(ex => ex.HallNumber == hallNumber)
@@ -109,7 +123,11 @@ public class AnalyticsService(
     public async Task<IEnumerable<VisitorResponse>> GetVisitorsOfSelectedExcursionAsync(int excursionId)
     {
         logger.LogInformation("Запрос посетителей экскурсии {ExcursionId}", excursionId);
-        var tickets = await ticketRepository.GetAllAsync();
+
+        var tickets = await ticketRepository.GetAllAsync(
+            nameof(Ticket.Excursion),
+            nameof(Ticket.Visitor)
+        );
 
         return tickets
             .Where(t => t.Excursion.Id == excursionId)
